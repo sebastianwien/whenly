@@ -10,6 +10,16 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // New service worker activates immediately and takes over open tabs so
+        // a stale shell can't render a blank page after a frontend rebuild.
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
+        navigateFallback: '/index.html',
+        // Never cache /api requests — they always need a fresh response.
+        navigateFallbackDenylist: [/^\/api\//, /^\/actuator\//]
+      },
       manifest: {
         name: 'whenly',
         short_name: 'whenly',
