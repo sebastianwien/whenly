@@ -49,6 +49,7 @@ export interface Poll {
   closedAt: string | null
   createdAt: string
   retentionUntil: string
+  viewerParticipantId: string | null
   admin: { adminToken: string; ownerEmail: string | null } | null
 }
 

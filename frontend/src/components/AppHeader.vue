@@ -33,15 +33,22 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
           {{ t('nav.about') }}
         </RouterLink>
         <div class="relative" data-lang-menu>
-          <button class="btn btn-ghost px-3 text-sm" @click="langOpen = !langOpen">
+          <button class="btn btn-ghost px-3 text-sm"
+                  :aria-label="t('nav.language')"
+                  aria-haspopup="menu"
+                  :aria-expanded="langOpen"
+                  @click="langOpen = !langOpen">
             {{ locale.toUpperCase() }}
             <ChevronDownIcon class="w-4 h-4" />
           </button>
           <div v-if="langOpen"
+               role="menu"
                class="absolute right-0 mt-2 surface min-w-[8rem] z-30">
-            <button class="w-full text-left px-4 py-2 hover:bg-[var(--color-sand-200)] text-sm"
+            <button role="menuitem"
+                    class="w-full text-left px-4 py-2 hover:bg-[var(--color-sand-200)] text-sm"
                     @click="pick('en')">English</button>
-            <button class="w-full text-left px-4 py-2 hover:bg-[var(--color-sand-200)] text-sm"
+            <button role="menuitem"
+                    class="w-full text-left px-4 py-2 hover:bg-[var(--color-sand-200)] text-sm"
                     @click="pick('de')">Deutsch</button>
           </div>
         </div>

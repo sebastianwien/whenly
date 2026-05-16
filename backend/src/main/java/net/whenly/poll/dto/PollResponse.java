@@ -24,6 +24,7 @@ public record PollResponse(
     Instant closedAt,
     Instant createdAt,
     Instant retentionUntil,
+    UUID viewerParticipantId,
     Admin admin) {
 
   public record Settings(

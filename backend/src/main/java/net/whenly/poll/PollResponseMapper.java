@@ -29,11 +29,19 @@ public class PollResponseMapper {
 
   @Transactional(readOnly = true)
   public PollResponse toResponse(Poll poll, boolean asAdmin, String viewerParticipantToken) {
-    List<Participant> participants = participantRepository.findByPollOrderByCreatedAtAsc(poll);
+    List<Participant> participants = participantRepository.findByPollWithVotes(poll);
     List<Comment> comments = commentRepository.findByPollOrderByCreatedAtAsc(poll);
 
-    boolean viewerHasVoted = viewerParticipantToken != null
-        && participants.stream().anyMatch(p -> p.getParticipantToken().equals(viewerParticipantToken));
+    java.util.UUID viewerParticipantId = null;
+    if (viewerParticipantToken != null) {
+      for (Participant p : participants) {
+        if (p.getParticipantToken().equals(viewerParticipantToken)) {
+          viewerParticipantId = p.getId();
+          break;
+        }
+      }
+    }
+    boolean viewerHasVoted = viewerParticipantId != null;
     boolean hideResults = !asAdmin
         && poll.isHideResultsUntilVoted()
         && !viewerHasVoted;
@@ -77,6 +85,7 @@ public class PollResponseMapper {
         poll.getClosedAt(),
         poll.getCreatedAt(),
         poll.getRetentionUntil(),
+        viewerParticipantId,
         admin);
   }
 

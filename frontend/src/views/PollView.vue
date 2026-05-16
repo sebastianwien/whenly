@@ -75,19 +75,14 @@ async function load(force = false) {
 
 function seedMyVotes() {
   if (!poll.value || editing.value) return
-  const token = myToken.value
-  if (!token) { myVotes.value = new Map(); return }
-  const me = poll.value.participants.find(p => p.votes && p.votes.length >= 0 && (p as { /* token not exposed */ }))
-  // The API does not echo tokens; we reconcile by name (best effort).
-  // Better: server returns the participant id matching this token via a header — TODO.
-  void me
-  // For now, drop pre-fill if we don't know which participant; user can re-vote idempotently.
-  myVotes.value = new Map()
-  myName.value = ''
-}
-
-function startEdit() {
-  editing.value = true
+  const me = poll.value.viewerParticipantId
+    ? poll.value.participants.find(p => p.id === poll.value!.viewerParticipantId)
+    : null
+  if (!me) { myVotes.value = new Map(); myName.value = ''; return }
+  const next = new Map<string, VoteValue>()
+  for (const v of me.votes) next.set(v.optionId, v.value)
+  myVotes.value = next
+  if (!myName.value) myName.value = me.name
 }
 
 async function save() {
@@ -128,8 +123,8 @@ async function withdraw() {
 }
 
 function onVoteChange(optionId: string, value: VoteValue) {
-  if (!editing.value && myToken.value) return
-  if (!editing.value && !myToken.value) startEdit()
+  if (poll.value?.closedAt) return
+  editing.value = true
   myVotes.value.set(optionId, value)
 }
 
@@ -155,13 +150,6 @@ async function copyShare() {
   copied.value = true
   setTimeout(() => copied.value = false, 1500)
 }
-
-function commentsForOption(id: string | null) {
-  if (!poll.value) return []
-  return poll.value.comments.filter(c => c.optionId === id)
-}
-
-const generalComments = computed(() => commentsForOption(null))
 
 const retentionRelative = computed(() =>
   poll.value ? formatRelative(poll.value.retentionUntil, locale.value) : ''
@@ -312,11 +300,19 @@ onBeforeUnmount(() => { if (pollTimer) clearInterval(pollTimer) })
         </ul>
         <div class="surface p-4 space-y-3">
           <h3 class="font-medium">{{ t('poll.comments.addHeading') }}</h3>
-          <input v-model="commentAuthor" class="input" :placeholder="t('poll.comments.authorPlaceholder')" maxlength="120" />
-          <textarea v-model="commentBody" class="textarea" :placeholder="t('poll.comments.bodyPlaceholder')" maxlength="2000" />
           <div>
-            <label class="field-label">{{ t('poll.comments.attach') }}</label>
-            <select v-model="commentOption" class="select">
+            <label class="field-label" for="comment-author">{{ t('poll.comments.authorPlaceholder') }}</label>
+            <input id="comment-author" v-model="commentAuthor" class="input"
+                   :placeholder="t('poll.comments.authorPlaceholder')" maxlength="120" />
+          </div>
+          <div>
+            <label class="field-label" for="comment-body">{{ t('poll.comments.heading') }}</label>
+            <textarea id="comment-body" v-model="commentBody" class="textarea"
+                      :placeholder="t('poll.comments.bodyPlaceholder')" maxlength="2000" />
+          </div>
+          <div>
+            <label class="field-label" for="comment-option">{{ t('poll.comments.attach') }}</label>
+            <select id="comment-option" v-model="commentOption" class="select">
               <option :value="null">{{ t('poll.comments.attachNone') }}</option>
               <option v-for="opt in poll.options" :key="opt.id" :value="opt.id">
                 {{ formatOptionLabel(opt, poll.type, poll.timezone, locale) }}
@@ -327,8 +323,6 @@ onBeforeUnmount(() => { if (pollTimer) clearInterval(pollTimer) })
             {{ commentPosting ? t('common.loading') : t('poll.comments.post') }}
           </button>
         </div>
-        <!-- generalComments / commentsForOption are exposed for template; suppress noUnusedLocals warning -->
-        <div v-if="false">{{ generalComments.length }}{{ commentsForOption('').length }}</div>
       </section>
 
       <p class="text-xs text-[var(--color-ink-50)] text-center">

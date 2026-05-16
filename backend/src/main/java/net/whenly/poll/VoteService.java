@@ -45,17 +45,22 @@ public class VoteService {
     Participant participant;
     boolean created = false;
     if (existingParticipantToken != null && !existingParticipantToken.isBlank()) {
-      participant = participantRepository.findByParticipantToken(existingParticipantToken)
+      participant = participantRepository.findByParticipantTokenAndPoll(existingParticipantToken, poll)
           .orElseThrow(() -> ApiException.forbidden("invalid_participant_token"));
-      if (!participant.getPoll().getId().equals(poll.getId())) {
-        throw ApiException.forbidden("participant_poll_mismatch");
-      }
       participant.setName(name);
       participant.touch();
     } else {
       participant = new Participant(poll, TokenGenerator.generate(), name);
       participantRepository.save(participant);
       created = true;
+    }
+
+    if (!poll.isAllowMultiple()) {
+      long yesCount = request.votes().stream().filter(e -> e.value() == VoteValue.YES).count();
+      if (yesCount > 1) {
+        throw ApiException.badRequest("single_choice_only",
+            "This poll allows only one 'yes' vote per participant");
+      }
     }
 
     Map<UUID, PollOption> optionsById = new HashMap<>();
