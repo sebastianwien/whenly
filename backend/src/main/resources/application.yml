@@ -42,6 +42,11 @@ management:
   endpoint:
     health:
       show-details: never
+  health:
+    # SMTP is optional and off by default; skip its health indicator so an
+    # unconfigured mail server doesn't make the whole app report DOWN.
+    mail:
+      enabled: false
 
 whenly:
   base-url: ${WHENLY_BASE_URL:http://localhost:5173}

@@ -24,7 +24,9 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-mail")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
 
-  implementation("org.flywaydb:flyway-core")
+  // Spring Boot 4 modularised the autoconfig: flyway-core alone is no
+  // longer enough; the starter brings in spring-boot-flyway autoconfig too.
+  implementation("org.springframework.boot:spring-boot-starter-flyway")
   implementation("org.flywaydb:flyway-database-postgresql")
 
   // ICS calendar generation
