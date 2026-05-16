@@ -1,0 +1,76 @@
+spring:
+  application:
+    name: whenly
+  datasource:
+    url: ${WHENLY_DB_URL:jdbc:postgresql://localhost:5432/whenly}
+    username: ${WHENLY_DB_USER:whenly}
+    password: ${WHENLY_DB_PASSWORD:whenly}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  mail:
+    host: ${WHENLY_SMTP_HOST:}
+    port: ${WHENLY_SMTP_PORT:587}
+    username: ${WHENLY_SMTP_USER:}
+    password: ${WHENLY_SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls.enable: true
+
+server:
+  port: ${WHENLY_PORT:8080}
+  compression:
+    enabled: true
+  error:
+    include-message: never
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+whenly:
+  base-url: ${WHENLY_BASE_URL:http://localhost:5173}
+  retention:
+    default-days-after-last-option: 30
+    max-days: 365
+    cleanup-cron: "0 30 3 * * *"
+  rate-limit:
+    polls-per-ip-per-hour: 10
+    votes-per-ip-per-minute: 60
+  mail:
+    enabled: ${WHENLY_MAIL_ENABLED:false}
+    from: ${WHENLY_MAIL_FROM:noreply@whenly.local}
+
+logging:
+  level:
+    root: INFO
+    net.whenly: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    properties:
+      hibernate:
+        format_sql: false
+logging:
+  level:
+    root: INFO
+    net.whenly: INFO
