@@ -1,0 +1,258 @@
+@import "tailwindcss";
+
+/* ---- whenly design language --------------------------------------------- */
+/* Warm sand backdrop, deep-ink ink, terracotta accent, sage success.        */
+/* Bold borders + serif headings (Fraunces) + sans body (Inter).             */
+/* Deliberately not the generic "white card on gray bg" Tailwind look.       */
+
+@theme {
+  --color-sand-50: #FBF8F1;
+  --color-sand-100: #F5F1E8;
+  --color-sand-200: #ECE5D4;
+  --color-sand-300: #DCD0B5;
+  --color-sand-400: #B4A682;
+
+  --color-ink-50: #6B6359;
+  --color-ink-100: #4A443D;
+  --color-ink-500: #2E2A24;
+  --color-ink-700: #1F1D19;
+  --color-ink-900: #1A1814;
+
+  --color-clay-300: #F0A989;
+  --color-clay-500: #E07856;
+  --color-clay-600: #C25E3B;
+  --color-clay-700: #9E4A2C;
+
+  --color-sage-400: #9BBAAF;
+  --color-sage-500: #7A9B8E;
+  --color-sage-600: #5C7E70;
+
+  --color-citrus-400: #E8C547;
+  --color-citrus-500: #D9B021;
+
+  --font-serif: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Inter", "Inter var", system-ui, sans-serif;
+
+  --radius-card: 4px;
+  --radius-pill: 999px;
+
+  --shadow-press: 2px 2px 0 0 var(--color-ink-900);
+  --shadow-press-deep: 4px 4px 0 0 var(--color-ink-900);
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+html, body {
+  background-color: var(--color-sand-100);
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100%;
+}
+
+/* Subtle paper texture — very light, only on desktop to keep mobile clean.  */
+body {
+  background-image:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--color-ink-900) 4%, transparent) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+@media (max-width: 640px) {
+  body { background-image: none; }
+}
+
+h1, h2, h3, h4, .font-serif {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+/* ---- Buttons: bold, skeuomorphic press effect --------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  border-radius: var(--radius-card);
+  border: 2px solid var(--color-ink-900);
+  font-weight: 500;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  transition: transform 80ms ease-out, box-shadow 80ms ease-out, background-color 120ms;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-primary {
+  background-color: var(--color-ink-900);
+  color: var(--color-sand-50);
+  box-shadow: var(--shadow-press);
+}
+.btn-primary:hover { background-color: var(--color-ink-700); }
+.btn-primary:active { transform: translate(2px, 2px); box-shadow: 0 0 0 0 var(--color-ink-900); }
+
+.btn-accent {
+  background-color: var(--color-clay-500);
+  color: var(--color-ink-900);
+  box-shadow: var(--shadow-press);
+}
+.btn-accent:hover { background-color: var(--color-clay-600); color: var(--color-sand-50); }
+.btn-accent:active { transform: translate(2px, 2px); box-shadow: 0 0 0 0 var(--color-ink-900); }
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--color-ink-900);
+  border-color: transparent;
+}
+.btn-ghost:hover { background-color: var(--color-sand-200); }
+
+.btn-outline {
+  background-color: var(--color-sand-50);
+  color: var(--color-ink-900);
+  box-shadow: var(--shadow-press);
+}
+.btn-outline:hover { background-color: var(--color-sand-200); }
+.btn-outline:active { transform: translate(2px, 2px); box-shadow: 0 0 0 0 var(--color-ink-900); }
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: var(--shadow-press) !important;
+}
+
+/* ---- Inputs ------------------------------------------------------------- */
+.field-label {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-100);
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  background-color: var(--color-sand-50);
+  border: 2px solid var(--color-ink-900);
+  border-radius: var(--radius-card);
+  padding: 0.65rem 0.875rem;
+  font-size: 1rem;
+  font-family: var(--font-sans);
+  color: var(--color-ink-900);
+  transition: box-shadow 120ms ease, background-color 120ms;
+}
+.input::placeholder, .textarea::placeholder { color: var(--color-ink-50); }
+.input:focus, .textarea:focus, .select:focus {
+  outline: none;
+  box-shadow: var(--shadow-press);
+  background-color: #fff;
+}
+
+.textarea { min-height: 6rem; resize: vertical; }
+
+/* ---- Cards / surfaces --------------------------------------------------- */
+.surface {
+  background-color: var(--color-sand-50);
+  border: 2px solid var(--color-ink-900);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-press-deep);
+}
+
+.surface-soft {
+  background-color: var(--color-sand-50);
+  border: 1px solid var(--color-sand-300);
+  border-radius: var(--radius-card);
+}
+
+/* ---- Vote pill states --------------------------------------------------- */
+.vote-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  min-width: 3.25rem;
+  border: 2px solid var(--color-ink-900);
+  border-radius: var(--radius-card);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 60ms ease, box-shadow 60ms ease, background-color 120ms;
+  user-select: none;
+}
+.vote-pill:active { transform: translate(1px, 1px); }
+
+.vote-yes   { background-color: var(--color-sage-500);  color: var(--color-sand-50); box-shadow: var(--shadow-press); }
+.vote-maybe { background-color: var(--color-citrus-400); color: var(--color-ink-900); box-shadow: var(--shadow-press); }
+.vote-no    { background-color: var(--color-clay-300); color: var(--color-ink-900); box-shadow: var(--shadow-press); }
+.vote-empty { background-color: var(--color-sand-50);  color: var(--color-ink-50); border-color: var(--color-sand-300); }
+
+/* ---- Tag + chips -------------------------------------------------------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-sand-200);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.chip-accent { background-color: var(--color-clay-300); }
+.chip-sage   { background-color: var(--color-sage-400); color: var(--color-ink-900); }
+
+/* ---- Focus ring (accessibility) ----------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--color-clay-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Container --------------------------------------------------------- */
+.container-narrow {
+  max-width: 44rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+.container-wide {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .container-narrow, .container-wide { padding-inline: 1rem; }
+}
+
+/* ---- Dark mode --------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  html, body {
+    background-color: var(--color-ink-900);
+    color: var(--color-sand-100);
+    background-image:
+      radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--color-sand-100) 5%, transparent) 1px, transparent 0);
+    background-size: 22px 22px;
+  }
+  .input, .textarea, .select { background-color: var(--color-ink-700); color: var(--color-sand-50); border-color: var(--color-sand-100); }
+  .input::placeholder, .textarea::placeholder { color: var(--color-sand-400); }
+  .surface, .surface-soft { background-color: var(--color-ink-700); border-color: var(--color-sand-100); }
+  .btn-primary { background-color: var(--color-sand-100); color: var(--color-ink-900); border-color: var(--color-sand-100); box-shadow: 2px 2px 0 0 var(--color-clay-500); }
+  .btn-primary:hover { background-color: var(--color-sand-50); }
+  .btn-outline { background-color: var(--color-ink-900); color: var(--color-sand-100); border-color: var(--color-sand-100); box-shadow: 2px 2px 0 0 var(--color-clay-500); }
+  .btn-ghost { color: var(--color-sand-100); }
+  .btn-ghost:hover { background-color: var(--color-ink-500); }
+  .chip { background-color: var(--color-ink-500); color: var(--color-sand-100); }
+  .field-label { color: var(--color-sand-300); }
+  .vote-empty { background-color: var(--color-ink-700); color: var(--color-sand-300); border-color: var(--color-ink-500); }
+}
