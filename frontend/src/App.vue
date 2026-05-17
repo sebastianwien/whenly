@@ -7,10 +7,14 @@ import AppFooter from '@/components/AppFooter.vue'
   <div class="min-h-screen flex flex-col">
     <AppHeader />
     <main class="flex-1 pb-16 pt-6">
-      <RouterView v-slot="{ Component }">
-        <Transition name="fade" mode="out-in">
-          <component :is="Component" />
-        </Transition>
+      <!-- Suspense lets an async route component resolve before Vue swaps it
+           in, so a deep-link hit on /new etc. doesn't flash an empty body. -->
+      <RouterView v-slot="{ Component, route }">
+        <Suspense :timeout="0">
+          <Transition name="fade" mode="out-in">
+            <component :is="Component" :key="route.fullPath" />
+          </Transition>
+        </Suspense>
       </RouterView>
     </main>
     <AppFooter />
