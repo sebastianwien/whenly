@@ -2,9 +2,10 @@
 # whenly local dev: build + start the full stack, stream logs, clean shutdown.
 #
 # Usage:
-#   ./dev.sh           build + start everything, follow logs
-#   ./dev.sh --reset   nuke the postgres volume first (fresh DB)
-#   ./dev.sh --logs    skip build, attach to logs of a running stack
+#   ./dev.sh           build + start everything in foreground (logs stream live; Ctrl+C stops)
+#   ./dev.sh --detach  same, but run in background and exit when healthy
+#   ./dev.sh --reset   wipe the postgres volume and start fresh (foreground)
+#   ./dev.sh --logs    attach to logs of an already-running stack
 #   ./dev.sh --rebuild rebuild a single service, e.g. ./dev.sh --rebuild backend
 
 set -euo pipefail
@@ -23,13 +24,15 @@ if [[ ! -f .env ]]; then
   cp .env.example .env
 fi
 
+FOREGROUND=1
+RESET=0
+
 case "${1:-}" in
-  --reset)
-    echo "⚠ wiping postgres volume (all polls + votes will be gone)"
-    docker compose down -v
-    docker compose up --build -d
-    ;;
   --logs)
+    if [[ -z "$(docker compose ps -q)" ]]; then
+      echo "✗ no whenly containers are running. Start with: ./dev.sh" >&2
+      exit 1
+    fi
     docker compose logs -f
     exit 0
     ;;
@@ -39,9 +42,14 @@ case "${1:-}" in
     docker compose logs -f "$service"
     exit 0
     ;;
-  "")
-    docker compose up --build -d
+  --detach|-d)
+    FOREGROUND=0
     ;;
+  --reset)
+    RESET=1
+    ;;
+  "")
+    : ;;
   *)
     echo "unknown option: $1" >&2
     sed -n '3,9p' "$0" >&2
@@ -49,10 +57,30 @@ case "${1:-}" in
     ;;
 esac
 
-# Wait for backend health before printing the URL
+if [[ "$RESET" == 1 ]]; then
+  echo "⚠ wiping postgres volume (all polls + votes will be gone)"
+  docker compose down -v
+fi
+
+port="$(grep -E '^WHENLY_HOST_PORT=' .env | cut -d= -f2)"
+port="${port:-8080}"
+
+if [[ "$FOREGROUND" == 1 ]]; then
+  cat <<EOF
+starting whenly in foreground — Ctrl+C to stop
+once healthy:
+   App           http://localhost:${port}
+   Health        http://localhost:${port}/actuator/health
+EOF
+  exec docker compose up --build
+fi
+
+# Detached: build, start, wait for health, print URL, exit
+docker compose up --build -d
+
 echo -n "waiting for backend to come up "
 for i in {1..60}; do
-  if curl -fsS http://localhost:8080/actuator/health 2>/dev/null | grep -q '"status":"UP"'; then
+  if curl -fsS "http://localhost:${port}/actuator/health" 2>/dev/null | grep -q '"status":"UP"'; then
     echo " ✓"
     break
   fi
@@ -66,12 +94,9 @@ for i in {1..60}; do
   fi
 done
 
-port="$(grep -E '^WHENLY_HOST_PORT=' .env | cut -d= -f2)"
-port="${port:-8080}"
-
 cat <<EOF
 
-  whenly is up
+  whenly is up (detached)
   ─────────────────────────────────────────
    App           http://localhost:${port}
    Health        http://localhost:${port}/actuator/health
