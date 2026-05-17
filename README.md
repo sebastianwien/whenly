@@ -31,11 +31,21 @@ Architecture diagram, module map, and threading notes in `docs/ARCHITECTURE.md`.
 ```bash
 git clone git@github.com:sebastianwien/whenly.git
 cd whenly
-cp .env.example .env       # tweak DB password etc.
-docker compose up --build
+./dev.sh                   # builds + starts the stack, waits for health
 ```
 
 Open http://localhost:8080.
+
+Helper scripts:
+
+| Command | What it does |
+|---|---|
+| `./dev.sh` | Build + start + wait for backend health, print URLs |
+| `./dev.sh --logs` | Tail logs of the running stack |
+| `./dev.sh --rebuild backend` | Rebuild + restart a single service |
+| `./dev.sh --reset` | Drop the postgres volume and start fresh |
+| `./stop.sh` | Stop the stack (keeps the DB volume) |
+| `./stop.sh --purge` | Stop and drop the DB volume too |
 
 Hybrid mode (Postgres in Docker, app on host) and reset commands are in `docs/local-development.md`.
 
