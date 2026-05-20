@@ -1,75 +1,73 @@
-# Server Setup (einmalig)
+# Deployment
 
-whenly laeuft auf demselben Hetzner-Server wie ev-monitor.net.
-SSH: `ssh -i ~/.ssh/ihle-private -p 2222 ihle@46.225.210.231`
+## Architektur
 
-## 1. Repo klonen
+whenly laeuft auf demselben Hetzner-Server wie ev-monitor.net (`46.225.210.231`).
 
-```bash
-mkdir -p /opt/whenly
-cd /opt/whenly
-git clone https://github.com/DEIN_ORG/whenly.git whenly
-cd whenly
-chmod +x deploy.sh
+- **whenly-Stack** (`docker-compose.prod.yml`): postgres, backend, frontend, nginx - gebunden auf `0.0.0.0:8091`
+- **ev-monitor nginx** (Port 80/443): terminiert SSL fuer whenly.de, proxied zu `172.18.0.1:8091`
+- **Cert-Renewal**: laeuft automatisch im ev-monitor certbot-Container (shared Volume)
+
+```
+Internet -> ev-monitor nginx (:443) -> whenly nginx (:8091) -> frontend/backend
 ```
 
-## 2. .env anlegen
+## Laufender Betrieb
 
+**Deploy:** Jeder Push auf `main` deployt automatisch via GitHub Actions (SSH -> `git pull` + `deploy.sh`).
+
+**Manueller Deploy:**
 ```bash
-cp .env.example .env
-nano .env
-# WHENLY_DB_PASSWORD=<sicheres Passwort>
-# WHENLY_BASE_URL=https://whenly.de
+ssh -i ~/.ssh/ihle-private -p 2222 ihle@46.225.210.231
+cd /opt/whenly/whenly && ./deploy.sh
 ```
 
-## 3. Let's Encrypt Cert ausstellen
-
-Das Cert muss im ev-monitor certbot-Container beantragt werden, der den ACME-Challenge-Ordner bedient:
-
+**Logs:**
 ```bash
-cd /opt/ev-monitor/ev-monitor
-
-# Temporaer HTTP fuer ACME freigeben (ev-monitor nginx leitet bereits /.well-known durch)
-# whenly.de muss DNS A-Record auf 46.225.210.231 haben
-
-docker compose -f docker-compose.full.yml exec certbot \
-  certbot certonly --webroot \
-  -w /var/www/certbot \
-  -d whenly.de -d www.whenly.de \
-  --email deine@email.de \
-  --agree-tos --non-interactive
+docker compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.prod.yml logs -f nginx
 ```
 
-## 4. whenly-nginx in ev-monitor einhaengen
+**Health Check:**
+```bash
+curl http://127.0.0.1:8091/actuator/health
+```
 
-In `/opt/ev-monitor/ev-monitor/docker-compose.full.yml` unter `nginx` > `volumes` ergaenzen:
+## Server-Konfiguration
 
+**Pfade:**
+- Repo: `/opt/whenly/whenly/`
+- Env: `/opt/whenly/whenly/.env`
+
+**ev-monitor nginx Volume-Mount** (in `docker-compose.full.yml`):
 ```yaml
 - /opt/whenly/whenly/nginx/whenly-ev-monitor.conf:/etc/nginx/conf.d/whenly.conf:ro
 ```
 
-Dann ev-monitor nginx neu starten:
-
-```bash
-cd /opt/ev-monitor/ev-monitor
-docker compose -f docker-compose.full.yml restart nginx
-```
-
-## 5. Ersten Deploy starten
-
-```bash
-cd /opt/whenly/whenly
-./deploy.sh
-```
-
-## 6. GitHub Secrets setzen
-
-Im GitHub-Repo unter Settings > Secrets > Actions:
+**GitHub Secrets:**
 
 | Secret | Wert |
 |--------|------|
 | `SERVER_HOST` | `46.225.210.231` |
 | `SERVER_USER` | `ihle` |
-| `SSH_PRIVATE_KEY` | Inhalt von `~/.ssh/ihle-private` |
+| `SSH_PRIVATE_KEY` | `~/.ssh/ihle-private` |
 
-Ab dann deployt jeder Push auf `main` automatisch.
+## Ersteinrichtung (einmalig)
+
+Nur relevant wenn der Server neu aufgesetzt wird:
+
+1. Repo klonen: `mkdir -p /opt/whenly && git clone ... /opt/whenly/whenly`
+2. `.env` anlegen (siehe `.env.example`) - `WHENLY_DB_PASSWORD` und `WHENLY_BASE_URL=https://whenly.de`
+3. DNS: A-Record `whenly.de` -> `46.225.210.231`, AAAA -> `2a01:4f8:1c19:a28e::1`
+4. Volume-Mount in ev-monitor `docker-compose.full.yml` eintragen, nginx neu starten
+5. Temp. HTTP-Config fuer ACME aktivieren (siehe `nginx/whenly-ev-monitor.conf` - `listen [::]:80` benoetigt)
+6. Cert ausstellen:
+   ```bash
+   cd /opt/ev-monitor/ev-monitor
+   docker compose -f docker-compose.full.yml run --rm --entrypoint certbot certbot \
+     certonly --webroot -w /var/www/certbot \
+     -d whenly.de -d www.whenly.de \
+     --email sebastian.wien@posteo.com --agree-tos --non-interactive
+   ```
+7. SSL-Config wiederherstellen: `git checkout nginx/whenly-ev-monitor.conf`, ev-monitor nginx neu starten
+8. `./deploy.sh` fuer ersten Stack-Start
