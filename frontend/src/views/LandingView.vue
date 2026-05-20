@@ -22,6 +22,7 @@ const features = [
 </script>
 
 <template>
+  <div>
   <!-- Hero ------------------------------------------------------------- -->
   <section class="container-wide pt-10 sm:pt-16 pb-12 sm:pb-20">
     <div class="grid lg:grid-cols-[3fr_2fr] gap-10 items-end">
@@ -115,4 +116,5 @@ const features = [
       </RouterLink>
     </div>
   </section>
+  </div>
 </template>

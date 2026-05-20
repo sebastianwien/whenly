@@ -57,3 +57,8 @@ test-results/
 Thumbs.db
 .tmp/
 .cache/
+
+# dev.sh runtime files
+.backend.pid
+.frontend.pid
+logs/
