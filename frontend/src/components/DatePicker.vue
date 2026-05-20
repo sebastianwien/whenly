@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import {
   startOfWeek, addDays, addWeeks, format,
-  isBefore, startOfDay, isSameDay, getMonth
+  isBefore, startOfDay, isSameDay, getMonth, getYear
 } from 'date-fns'
 
 const props = defineProps<{
@@ -16,34 +16,66 @@ const emit = defineEmits<{
 
 const { t, tm, locale } = useI18n()
 
-const WEEKS_SHOWN = 8
+const ROW_H = 36        // px - matches h-9
+const VISIBLE_WEEKS = 8
+const TOTAL_WEEKS = 52  // rendered in the tape
 const today = startOfDay(new Date())
 const startMonday = startOfWeek(today, { weekStartsOn: 1 })
-const offset = ref(0)
-const direction = ref<'left' | 'right'>('right')
+const offset = ref(0)   // week index (0 = this week at top)
 
-const weeks = computed(() => {
-  const monday = addWeeks(startMonday, offset.value)
-  return Array.from({ length: WEEKS_SHOWN }, (_, wi) =>
-    Array.from({ length: 7 }, (_, di) => addDays(addWeeks(monday, wi), di))
-  )
-})
-
-function prev() {
-  if (offset.value <= 0) return
-  direction.value = 'left'
-  offset.value = Math.max(0, offset.value - 2)
-}
-function next() {
-  direction.value = 'right'
-  offset.value += 2
-}
-
-const quickDays = computed(() =>
-  Array.from({ length: 7 }, (_, i) => addDays(today, i))
+// All 52 weeks pre-rendered
+const allWeeks = Array.from({ length: TOTAL_WEEKS }, (_, wi) =>
+  Array.from({ length: 7 }, (_, di) => addDays(addWeeks(startMonday, wi), di))
 )
 
 const weekdayLabels = computed(() => tm('create.datepicker.weekdays') as string[])
+
+// Month label above a week row when month changes
+function monthLabel(wi: number): string | null {
+  if (wi === 0) return allWeeks[0][0].toLocaleDateString(locale.value, { month: 'long', year: 'numeric' })
+  const prev = allWeeks[wi - 1][0]
+  const cur  = allWeeks[wi][0]
+  if (getMonth(cur) !== getMonth(prev) || getYear(cur) !== getYear(prev)) {
+    return cur.toLocaleDateString(locale.value, { month: 'long', year: 'numeric' })
+  }
+  return null
+}
+
+// Header label: month of first visible week
+const headerLabel = computed(() =>
+  allWeeks[offset.value][0].toLocaleDateString(locale.value, { month: 'long', year: 'numeric' })
+)
+
+// translateY: each week = ROW_H px, month labels add 24px when present
+function rowTop(wi: number): number {
+  let y = 0
+  for (let i = 0; i < wi; i++) {
+    y += ROW_H
+    if (monthLabel(i + 1)) y += 24
+  }
+  return y
+}
+
+// Height of the visible window (VISIBLE_WEEKS rows + their month labels)
+const visibleHeight = computed(() => {
+  let h = 0
+  for (let i = offset.value; i < offset.value + VISIBLE_WEEKS; i++) {
+    h += ROW_H
+    if (i + 1 < TOTAL_WEEKS && monthLabel(i + 1)) h += 24
+  }
+  return h
+})
+
+// Offset in px for the tape
+const tapeY = computed(() => rowTop(offset.value))
+
+function prev() { if (offset.value > 0) offset.value = Math.max(0, offset.value - 2) }
+function next() { if (offset.value + VISIBLE_WEEKS < TOTAL_WEEKS) offset.value = Math.min(TOTAL_WEEKS - VISIBLE_WEEKS, offset.value + 2) }
+
+// Quick-select chips
+const quickDays = computed(() =>
+  Array.from({ length: 7 }, (_, i) => addDays(today, i))
+)
 
 function isoDate(d: Date): string { return format(d, 'yyyy-MM-dd') }
 function isSelected(d: Date): boolean { return props.selected.includes(isoDate(d)) }
@@ -55,14 +87,6 @@ function toggle(d: Date) {
 function quickLabel(d: Date): string {
   if (isSameDay(d, today)) return t('create.datepicker.today')
   return d.toLocaleDateString(locale.value, { weekday: 'short' })
-}
-
-function monthLabelForWeek(week: Date[], wi: number): string | null {
-  if (wi === 0) return week[0].toLocaleDateString(locale.value, { month: 'long', year: 'numeric' })
-  if (getMonth(week[0]) !== getMonth(weeks.value[wi - 1][0])) {
-    return week[0].toLocaleDateString(locale.value, { month: 'long', year: 'numeric' })
-  }
-  return null
 }
 </script>
 
@@ -84,22 +108,22 @@ function monthLabelForWeek(week: Date[], wi: number): string | null {
       </button>
     </div>
 
-    <!-- Rolling calendar -->
-    <div class="surface-soft rounded-xl p-4 select-none overflow-hidden">
-      <!-- Navigation -->
+    <!-- Calendar -->
+    <div class="surface-soft rounded-xl p-4 select-none">
+      <!-- Navigation header -->
       <div class="flex items-center justify-between mb-3">
         <button type="button" class="btn btn-ghost p-1" :disabled="offset === 0" @click="prev">
           <ChevronLeftIcon class="w-5 h-5" />
         </button>
         <span class="text-sm text-[var(--color-sand-400)] font-medium capitalize">
-          {{ weeks[0][0].toLocaleDateString(locale, { month: 'long', year: 'numeric' }) }}
+          {{ headerLabel }}
         </span>
-        <button type="button" class="btn btn-ghost p-1" @click="next">
+        <button type="button" class="btn btn-ghost p-1" :disabled="offset + VISIBLE_WEEKS >= TOTAL_WEEKS" @click="next">
           <ChevronRightIcon class="w-5 h-5" />
         </button>
       </div>
 
-      <!-- Weekday headers (static, outside slide) -->
+      <!-- Weekday headers (fixed) -->
       <div class="grid grid-cols-7 mb-1">
         <div
           v-for="wd in weekdayLabels"
@@ -110,18 +134,25 @@ function monthLabelForWeek(week: Date[], wi: number): string | null {
         </div>
       </div>
 
-      <!-- Animated weeks -->
-      <Transition :name="direction === 'right' ? 'scroll-down' : 'scroll-up'" mode="out-in">
-        <div :key="offset">
-          <div v-for="(week, wi) in weeks" :key="wi">
+      <!-- Tape window -->
+      <div class="overflow-hidden relative" :style="{ height: visibleHeight + 'px' }">
+        <div
+          class="absolute w-full"
+          style="transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)"
+          :style="{ transform: `translateY(-${tapeY}px)` }"
+        >
+          <template v-for="(week, wi) in allWeeks" :key="wi">
+            <!-- Month label -->
             <div
-              v-if="monthLabelForWeek(week, wi)"
-              class="text-xs text-[var(--color-sand-400)] font-semibold capitalize pt-2 pb-1"
-              :class="wi > 0 ? 'border-t border-[var(--color-sand-300)] mt-1' : ''"
+              v-if="monthLabel(wi)"
+              class="text-xs text-[var(--color-sand-400)] font-semibold capitalize pb-1"
+              :class="wi > 0 ? 'border-t border-[var(--color-sand-300)] pt-2 mt-1' : ''"
+              style="height: 24px"
             >
-              {{ monthLabelForWeek(week, wi) }}
+              {{ monthLabel(wi) }}
             </div>
-            <div class="grid grid-cols-7">
+            <!-- Week row -->
+            <div class="grid grid-cols-7" :style="{ height: ROW_H + 'px' }">
               <button
                 v-for="d in week"
                 :key="isoDate(d)"
@@ -138,26 +169,9 @@ function monthLabelForWeek(week: Date[], wi: number): string | null {
                 {{ d.getDate() }}
               </button>
             </div>
-          </div>
+          </template>
         </div>
-      </Transition>
+      </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.scroll-down-enter-active,
-.scroll-down-leave-active,
-.scroll-up-enter-active,
-.scroll-up-leave-active {
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-/* forward (>) : neuer Inhalt kommt von unten, 2 Zeilen = 88px */
-.scroll-down-enter-from { transform: translateY(88px); opacity: 0; }
-.scroll-down-leave-to   { transform: translateY(-88px); opacity: 0; }
-
-/* backward (<) : neuer Inhalt kommt von oben */
-.scroll-up-enter-from   { transform: translateY(-88px); opacity: 0; }
-.scroll-up-leave-to     { transform: translateY(88px); opacity: 0; }
-</style>
