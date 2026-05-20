@@ -246,10 +246,12 @@ h1, h2, h3, h4, .font-serif {
   }
   .input, .textarea, .select { background-color: var(--color-ink-700); color: var(--color-sand-50); border-color: var(--color-sand-100); }
   .input::placeholder, .textarea::placeholder { color: var(--color-sand-400); }
+  .input:focus, .textarea:focus, .select:focus { background-color: var(--color-ink-500); color: var(--color-sand-50); }
   .surface, .surface-soft { background-color: var(--color-ink-700); border-color: var(--color-sand-100); }
   .btn-primary { background-color: var(--color-sand-100); color: var(--color-ink-900); border-color: var(--color-sand-100); box-shadow: 2px 2px 0 0 var(--color-clay-500); }
-  .btn-primary:hover { background-color: var(--color-sand-50); }
+  .btn-primary:hover { background-color: var(--color-sand-50); color: var(--color-ink-900); }
   .btn-outline { background-color: var(--color-ink-900); color: var(--color-sand-100); border-color: var(--color-sand-100); box-shadow: 2px 2px 0 0 var(--color-clay-500); }
+  .btn-outline:hover { background-color: var(--color-ink-700); color: var(--color-sand-100); }
   .btn-ghost { color: var(--color-sand-100); }
   .btn-ghost:hover { background-color: var(--color-ink-500); }
   .chip { background-color: var(--color-ink-500); color: var(--color-sand-100); }
