@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import {
   startOfWeek, addDays, addWeeks, format,
   isBefore, startOfDay, isSameDay, getMonth
@@ -17,14 +18,18 @@ const { t, tm, locale } = useI18n()
 
 const WEEKS_SHOWN = 8
 const today = startOfDay(new Date())
+const startMonday = startOfWeek(today, { weekStartsOn: 1 })
+const offset = ref(0) // weeks offset from startMonday
 
-// Rolling weeks: start from Monday of this week, show WEEKS_SHOWN weeks
 const weeks = computed(() => {
-  const monday = startOfWeek(today, { weekStartsOn: 1 })
+  const monday = addWeeks(startMonday, offset.value)
   return Array.from({ length: WEEKS_SHOWN }, (_, wi) =>
     Array.from({ length: 7 }, (_, di) => addDays(addWeeks(monday, wi), di))
   )
 })
+
+function prev() { if (offset.value > 0) offset.value-- }
+function next() { offset.value++ }
 
 // Quick-select chips: today + next 6 days
 const quickDays = computed(() =>
@@ -83,6 +88,19 @@ function monthLabelForWeek(week: Date[], wi: number): string | null {
 
     <!-- Rolling calendar -->
     <div class="surface-soft rounded-xl p-4 select-none">
+      <!-- Navigation -->
+      <div class="flex items-center justify-between mb-3">
+        <button type="button" class="btn btn-ghost p-1" :disabled="offset === 0" @click="prev">
+          <ChevronLeftIcon class="w-5 h-5" />
+        </button>
+        <span class="text-sm text-[var(--color-ink-100)] capitalize">
+          {{ weeks[0][0].toLocaleDateString(locale, { month: 'long', year: 'numeric' }) }}
+        </span>
+        <button type="button" class="btn btn-ghost p-1" @click="next">
+          <ChevronRightIcon class="w-5 h-5" />
+        </button>
+      </div>
+
       <!-- Weekday headers -->
       <div class="grid grid-cols-7 mb-2">
         <div
