@@ -83,7 +83,18 @@ export default {
       remove: 'Entfernen',
       start: 'Beginn',
       end: 'Ende (optional)',
-      labelPlaceholder: 'Optionstext…'
+      labelPlaceholder: 'Optionstext…',
+      selected: 'Ausgewählt',
+      noSelection: 'Noch keine Tage ausgewählt.'
+    },
+    datepicker: {
+      today: 'Heute',
+      nextWeek: 'Nächste Woche →',
+      weekdays: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
+    },
+    time: {
+      sameForAll: 'Uhrzeit für alle gleich',
+      customTime: 'eigene Zeit…'
     },
     settings: {
       allowMaybe: { title: '"Vielleicht" erlauben', body: 'Abstimmende wählen Ja / Vielleicht / Nein statt nur Ja / Nein.' },

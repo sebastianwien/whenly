@@ -1,30 +1,32 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { PlusIcon, MinusCircleIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
 import { createPoll } from '@/api/polls'
 import type { CreatePollPayload, PollType } from '@/types'
 import { ApiError } from '@/api/client'
+import DatePicker from '@/components/DatePicker.vue'
+import TimeSlotPicker from '@/components/TimeSlotPicker.vue'
+import OptionsList from '@/components/OptionsList.vue'
+import type { OptionDraft } from '@/components/OptionsList.vue'
 
 const { t } = useI18n()
 const router = useRouter()
 
-interface OptionDraft {
-  id: number
-  start: string
-  end: string
-  label: string
-}
-
-let nextId = 1
-const make = (): OptionDraft => ({ id: nextId++, start: '', end: '', label: '' })
-
 const title = ref('')
 const description = ref('')
 const location = ref('')
-const pollType = ref<PollType>('DATE_TIME')
-const options = ref<OptionDraft[]>([make(), make()])
+const pollType = ref<PollType>('DATE_ONLY')
+
+// Date/time options state
+let nextId = 1
+const dateoptions = ref<OptionDraft[]>([])
+const sameTimeForAll = ref(true)
+const globalTime = ref<string | null>('19:00')
+
+// Generic text options
+const genericOptions = ref([{ id: nextId++, label: '' }, { id: nextId++, label: '' }])
 
 const allowMaybe = ref(true)
 const hideResults = ref(false)
@@ -36,29 +38,66 @@ const submitError = ref<string | null>(null)
 
 const timezone = computed(() => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC')
 
-function addOption() {
-  options.value.push(make())
-}
-function removeOption(id: number) {
-  if (options.value.length <= 2) return
-  options.value = options.value.filter(o => o.id !== id)
+const isDateType = computed(() => pollType.value === 'DATE_TIME' || pollType.value === 'DATE_ONLY')
+const isDateTime = computed(() => pollType.value === 'DATE_TIME')
+
+// Reset time overrides when switching away from DATE_TIME
+watch(pollType, (val) => {
+  if (val !== 'DATE_TIME') {
+    dateoptions.value.forEach(o => { o.timeOverridden = false })
+  }
+})
+
+function toggleDate(iso: string) {
+  const idx = dateoptions.value.findIndex(o => o.date === iso)
+  if (idx >= 0) {
+    dateoptions.value.splice(idx, 1)
+  } else {
+    dateoptions.value.push({ id: nextId++, date: iso, time: null, timeOverridden: false })
+    dateoptions.value.sort((a, b) => a.date.localeCompare(b.date))
+  }
 }
 
-function localToInstant(local: string): string | null {
-  if (!local) return null
-  const d = new Date(local)
-  if (isNaN(d.getTime())) return null
-  return d.toISOString()
+function removeOption(id: number) {
+  dateoptions.value = dateoptions.value.filter(o => o.id !== id)
 }
+
+function setOptionTime(id: number, time: string) {
+  const opt = dateoptions.value.find(o => o.id === id)
+  if (!opt) return
+  opt.time = time
+  opt.timeOverridden = true
+}
+
+function addGeneric() {
+  genericOptions.value.push({ id: nextId++, label: '' })
+}
+function removeGeneric(id: number) {
+  if (genericOptions.value.length <= 2) return
+  genericOptions.value = genericOptions.value.filter(o => o.id !== id)
+}
+
+const selectedDates = computed(() => dateoptions.value.map(o => o.date))
 
 const valid = computed(() => {
   if (!title.value.trim()) return false
-  if (options.value.length < 2) return false
   if (pollType.value === 'GENERIC') {
-    return options.value.every(o => o.label.trim().length > 0)
+    return genericOptions.value.length >= 2 && genericOptions.value.every(o => o.label.trim())
   }
-  return options.value.every(o => !!localToInstant(o.start))
+  if (dateoptions.value.length < 2) return false
+  if (isDateTime.value) {
+    return dateoptions.value.every(o => {
+      const time = o.timeOverridden ? o.time : globalTime.value
+      return !!time
+    })
+  }
+  return true
 })
+
+function resolveTime(opt: OptionDraft): string | null {
+  if (!isDateTime.value) return null
+  return opt.timeOverridden ? opt.time : globalTime.value
+}
 
 async function submit() {
   submitError.value = null
@@ -74,11 +113,13 @@ async function submit() {
       location: location.value.trim() || null,
       type: pollType.value,
       timezone: timezone.value,
-      options: options.value.map(o => ({
-        startAt: pollType.value === 'GENERIC' ? null : localToInstant(o.start),
-        endAt: pollType.value === 'GENERIC' ? null : localToInstant(o.end),
-        label: o.label.trim() || null
-      })),
+      options: pollType.value === 'GENERIC'
+        ? genericOptions.value.map(o => ({ startAt: null, endAt: null, label: o.label.trim() }))
+        : dateoptions.value.map(o => {
+            const time = resolveTime(o)
+            const startAt = time ? `${o.date}T${time}:00` : `${o.date}T00:00:00`
+            return { startAt: new Date(startAt).toISOString(), endAt: null, label: null }
+          }),
       settings: {
         allowMaybe: allowMaybe.value,
         hideResultsUntilVoted: hideResults.value,
@@ -124,10 +165,12 @@ async function submit() {
           <input id="poll-location" v-model="location" class="input" type="text"
                  maxlength="255" :placeholder="t('create.field.locationPlaceholder')" />
         </div>
+
+        <!-- Poll type -->
         <div>
           <label class="field-label">{{ t('create.field.type') }}</label>
           <div class="flex flex-wrap gap-2">
-            <button v-for="opt in ['DATE_TIME', 'DATE_ONLY', 'GENERIC'] as PollType[]"
+            <button v-for="opt in (['DATE_ONLY', 'DATE_TIME', 'GENERIC'] as PollType[])"
                     :key="opt"
                     type="button"
                     class="btn"
@@ -137,42 +180,83 @@ async function submit() {
             </button>
           </div>
         </div>
+
+        <!-- Time controls (slide in for DATE_TIME) -->
+        <Transition
+          enter-active-class="transition-all duration-300 ease-out overflow-hidden"
+          leave-active-class="transition-all duration-200 ease-in overflow-hidden"
+          enter-from-class="max-h-0 opacity-0"
+          enter-to-class="max-h-40 opacity-100"
+          leave-from-class="max-h-40 opacity-100"
+          leave-to-class="max-h-0 opacity-0"
+        >
+          <div v-if="isDateTime" class="space-y-2 pt-1">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" v-model="sameTimeForAll" class="w-4 h-4 accent-[var(--color-clay-500)]" />
+              <span class="text-sm">{{ t('create.time.sameForAll') }}</span>
+            </label>
+            <Transition
+              enter-active-class="transition-all duration-200 ease-out overflow-hidden"
+              leave-active-class="transition-all duration-150 ease-in overflow-hidden"
+              enter-from-class="max-h-0 opacity-0"
+              enter-to-class="max-h-20 opacity-100"
+              leave-from-class="max-h-20 opacity-100"
+              leave-to-class="max-h-0 opacity-0"
+            >
+              <TimeSlotPicker
+                v-if="sameTimeForAll"
+                v-model="globalTime"
+              />
+            </Transition>
+          </div>
+        </Transition>
       </div>
 
       <!-- Options -->
-      <div class="surface p-5 sm:p-6">
-        <h2 class="font-serif text-2xl mb-4">{{ t('create.section.options') }}</h2>
-        <ul class="space-y-3">
-          <li v-for="(opt, idx) in options" :key="opt.id"
-              class="surface-soft p-4 grid gap-3"
-              :class="pollType === 'GENERIC' ? 'sm:grid-cols-[1fr_auto]' : 'sm:grid-cols-[1fr_1fr_auto]'">
-            <template v-if="pollType === 'GENERIC'">
-              <input v-model="opt.label" class="input"
+      <div class="surface p-5 sm:p-6 space-y-4">
+        <h2 class="font-serif text-2xl">{{ t('create.section.options') }}</h2>
+
+        <!-- Date picker (DATE_ONLY or DATE_TIME) -->
+        <template v-if="isDateType">
+          <DatePicker
+            :selected="selectedDates"
+            @toggle="toggleDate"
+          />
+          <div v-if="dateoptions.length > 0">
+            <p class="field-label mb-2">{{ t('create.options.selected') }}</p>
+            <OptionsList
+              :options="dateoptions"
+              :show-time="isDateTime"
+              :global-time="globalTime"
+              :same-time-for-all="sameTimeForAll"
+              @remove="removeOption"
+              @set-time="setOptionTime"
+            />
+          </div>
+          <p v-else class="text-sm text-[var(--color-ink-100)]">
+            {{ t('create.options.noSelection') }}
+          </p>
+        </template>
+
+        <!-- Generic text options -->
+        <template v-else>
+          <ul class="space-y-3">
+            <li v-for="opt in genericOptions" :key="opt.id"
+                class="surface-soft p-4 flex items-center gap-3">
+              <input v-model="opt.label" class="input flex-1"
                      :placeholder="t('create.options.labelPlaceholder')" maxlength="200" />
-            </template>
-            <template v-else>
-              <div>
-                <label class="field-label">{{ t('create.options.start') }} #{{ idx + 1 }}</label>
-                <input v-model="opt.start" class="input"
-                       :type="pollType === 'DATE_ONLY' ? 'date' : 'datetime-local'" required />
-              </div>
-              <div>
-                <label class="field-label">{{ t('create.options.end') }}</label>
-                <input v-model="opt.end" class="input"
-                       :type="pollType === 'DATE_ONLY' ? 'date' : 'datetime-local'" />
-              </div>
-            </template>
-            <button type="button" class="btn btn-ghost self-end justify-self-end text-sm h-10"
-                    :disabled="options.length <= 2"
-                    @click="removeOption(opt.id)">
-              <MinusCircleIcon class="w-5 h-5" /> <span class="hidden sm:inline">{{ t('create.options.remove') }}</span>
-            </button>
-          </li>
-        </ul>
-        <button type="button" class="btn btn-outline mt-4" @click="addOption">
-          <PlusIcon class="w-5 h-5" />
-          {{ t('create.options.add') }}
-        </button>
+              <button type="button" class="btn btn-ghost text-sm"
+                      :disabled="genericOptions.length <= 2"
+                      @click="removeGeneric(opt.id)">
+                <span class="hidden sm:inline">{{ t('create.options.remove') }}</span>
+              </button>
+            </li>
+          </ul>
+          <button type="button" class="btn btn-outline mt-2" @click="addGeneric">
+            <PlusIcon class="w-5 h-5" />
+            {{ t('create.options.add') }}
+          </button>
+        </template>
       </div>
 
       <!-- Settings -->

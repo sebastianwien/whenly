@@ -83,7 +83,18 @@ export default {
       remove: 'Remove',
       start: 'Start',
       end: 'End (optional)',
-      labelPlaceholder: 'Option text…'
+      labelPlaceholder: 'Option text…',
+      selected: 'Selected',
+      noSelection: 'No days selected yet.'
+    },
+    datepicker: {
+      today: 'Today',
+      nextWeek: 'Next week →',
+      weekdays: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+    },
+    time: {
+      sameForAll: 'Same time for all',
+      customTime: 'custom time…'
     },
     settings: {
       allowMaybe: { title: 'Allow "maybe" votes', body: 'Voters can pick yes / maybe / no instead of just yes / no.' },
