@@ -32,11 +32,11 @@ const weeks = computed(() => {
 function prev() {
   if (offset.value <= 0) return
   direction.value = 'left'
-  offset.value--
+  offset.value = Math.max(0, offset.value - 2)
 }
 function next() {
   direction.value = 'right'
-  offset.value++
+  offset.value += 2
 }
 
 const quickDays = computed(() =>
@@ -111,7 +111,7 @@ function monthLabelForWeek(week: Date[], wi: number): string | null {
       </div>
 
       <!-- Animated weeks -->
-      <Transition :name="direction === 'right' ? 'slide-left' : 'slide-right'" mode="out-in">
+      <Transition :name="direction === 'right' ? 'scroll-down' : 'scroll-up'" mode="out-in">
         <div :key="offset">
           <div v-for="(week, wi) in weeks" :key="wi">
             <div
@@ -146,16 +146,18 @@ function monthLabelForWeek(week: Date[], wi: number): string | null {
 </template>
 
 <style scoped>
-.slide-left-enter-active,
-.slide-left-leave-active,
-.slide-right-enter-active,
-.slide-right-leave-active {
-  transition: transform 0.22s ease, opacity 0.22s ease;
+.scroll-down-enter-active,
+.scroll-down-leave-active,
+.scroll-up-enter-active,
+.scroll-up-leave-active {
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.slide-left-enter-from  { transform: translateX(40px); opacity: 0; }
-.slide-left-leave-to    { transform: translateX(-40px); opacity: 0; }
+/* forward (>) : neuer Inhalt kommt von unten, 2 Zeilen = 88px */
+.scroll-down-enter-from { transform: translateY(88px); opacity: 0; }
+.scroll-down-leave-to   { transform: translateY(-88px); opacity: 0; }
 
-.slide-right-enter-from { transform: translateX(-40px); opacity: 0; }
-.slide-right-leave-to   { transform: translateX(40px); opacity: 0; }
+/* backward (<) : neuer Inhalt kommt von oben */
+.scroll-up-enter-from   { transform: translateY(-88px); opacity: 0; }
+.scroll-up-leave-to     { transform: translateY(88px); opacity: 0; }
 </style>
