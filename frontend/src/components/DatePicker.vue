@@ -8,7 +8,7 @@ import {
 } from 'date-fns'
 
 const props = defineProps<{
-  selected: string[] // ISO date strings "YYYY-MM-DD"
+  selected: string[]
 }>()
 const emit = defineEmits<{
   toggle: [date: string]
@@ -19,7 +19,8 @@ const { t, tm, locale } = useI18n()
 const WEEKS_SHOWN = 8
 const today = startOfDay(new Date())
 const startMonday = startOfWeek(today, { weekStartsOn: 1 })
-const offset = ref(0) // weeks offset from startMonday
+const offset = ref(0)
+const direction = ref<'left' | 'right'>('right')
 
 const weeks = computed(() => {
   const monday = addWeeks(startMonday, offset.value)
@@ -28,25 +29,25 @@ const weeks = computed(() => {
   )
 })
 
-function prev() { if (offset.value > 0) offset.value-- }
-function next() { offset.value++ }
+function prev() {
+  if (offset.value <= 0) return
+  direction.value = 'left'
+  offset.value--
+}
+function next() {
+  direction.value = 'right'
+  offset.value++
+}
 
-// Quick-select chips: today + next 6 days
 const quickDays = computed(() =>
   Array.from({ length: 7 }, (_, i) => addDays(today, i))
 )
 
 const weekdayLabels = computed(() => tm('create.datepicker.weekdays') as string[])
 
-function isoDate(d: Date): string {
-  return format(d, 'yyyy-MM-dd')
-}
-function isSelected(d: Date): boolean {
-  return props.selected.includes(isoDate(d))
-}
-function isPast(d: Date): boolean {
-  return isBefore(d, today)
-}
+function isoDate(d: Date): string { return format(d, 'yyyy-MM-dd') }
+function isSelected(d: Date): boolean { return props.selected.includes(isoDate(d)) }
+function isPast(d: Date): boolean { return isBefore(d, today) }
 function toggle(d: Date) {
   if (isPast(d)) return
   emit('toggle', isoDate(d))
@@ -56,12 +57,9 @@ function quickLabel(d: Date): string {
   return d.toLocaleDateString(locale.value, { weekday: 'short' })
 }
 
-// Show month label when first day of week is a new month (or first week)
 function monthLabelForWeek(week: Date[], wi: number): string | null {
-  const firstVisible = week.find(d => !isPast(d)) ?? week[0]
-  if (wi === 0) return firstVisible.toLocaleDateString(locale.value, { month: 'long', year: 'numeric' })
-  const prevWeekFirst = weeks.value[wi - 1][0]
-  if (getMonth(week[0]) !== getMonth(prevWeekFirst)) {
+  if (wi === 0) return week[0].toLocaleDateString(locale.value, { month: 'long', year: 'numeric' })
+  if (getMonth(week[0]) !== getMonth(weeks.value[wi - 1][0])) {
     return week[0].toLocaleDateString(locale.value, { month: 'long', year: 'numeric' })
   }
   return null
@@ -87,7 +85,7 @@ function monthLabelForWeek(week: Date[], wi: number): string | null {
     </div>
 
     <!-- Rolling calendar -->
-    <div class="surface-soft rounded-xl p-4 select-none">
+    <div class="surface-soft rounded-xl p-4 select-none overflow-hidden">
       <!-- Navigation -->
       <div class="flex items-center justify-between mb-3">
         <button type="button" class="btn btn-ghost p-1" :disabled="offset === 0" @click="prev">
@@ -101,8 +99,8 @@ function monthLabelForWeek(week: Date[], wi: number): string | null {
         </button>
       </div>
 
-      <!-- Weekday headers -->
-      <div class="grid grid-cols-7 mb-2">
+      <!-- Weekday headers (static, outside slide) -->
+      <div class="grid grid-cols-7 mb-1">
         <div
           v-for="wd in weekdayLabels"
           :key="wd"
@@ -112,33 +110,52 @@ function monthLabelForWeek(week: Date[], wi: number): string | null {
         </div>
       </div>
 
-      <!-- Weeks -->
-      <div v-for="(week, wi) in weeks" :key="wi">
-        <!-- Month separator -->
-        <div
-          v-if="monthLabelForWeek(week, wi)"
-          class="col-span-7 text-xs text-[var(--color-sand-400)] font-semibold capitalize pt-2 pb-1 border-t border-[var(--color-sand-300)] mt-1 first:border-t-0 first:mt-0 first:pt-0"
-        >
-          {{ monthLabelForWeek(week, wi) }}
+      <!-- Animated weeks -->
+      <Transition :name="direction === 'right' ? 'slide-left' : 'slide-right'" mode="out-in">
+        <div :key="offset">
+          <div v-for="(week, wi) in weeks" :key="wi">
+            <div
+              v-if="monthLabelForWeek(week, wi)"
+              class="text-xs text-[var(--color-sand-400)] font-semibold capitalize pt-2 pb-1"
+              :class="wi > 0 ? 'border-t border-[var(--color-sand-300)] mt-1' : ''"
+            >
+              {{ monthLabelForWeek(week, wi) }}
+            </div>
+            <div class="grid grid-cols-7">
+              <button
+                v-for="d in week"
+                :key="isoDate(d)"
+                type="button"
+                class="flex items-center justify-center text-sm rounded-full transition-colors mx-auto w-9 h-9"
+                :class="[
+                  isPast(d) ? 'opacity-20 cursor-not-allowed pointer-events-none' : 'hover:bg-[var(--color-sand-300)]',
+                  isSelected(d) ? '!bg-[var(--color-clay-500)] text-white font-semibold' : '',
+                  isSameDay(d, today) && !isSelected(d) ? 'ring-1 ring-[var(--color-clay-400)]' : ''
+                ]"
+                :disabled="isPast(d)"
+                @click="toggle(d)"
+              >
+                {{ d.getDate() }}
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="grid grid-cols-7">
-          <button
-            v-for="d in week"
-            :key="isoDate(d)"
-            type="button"
-            class="flex items-center justify-center text-sm rounded-full transition-colors mx-auto w-9 h-9"
-            :class="[
-              isPast(d) ? 'opacity-20 cursor-not-allowed pointer-events-none' : 'hover:bg-[var(--color-sand-300)]',
-              isSelected(d) ? '!bg-[var(--color-clay-500)] text-white font-semibold' : '',
-              isSameDay(d, today) && !isSelected(d) ? 'ring-1 ring-[var(--color-clay-400)]' : ''
-            ]"
-            :disabled="isPast(d)"
-            @click="toggle(d)"
-          >
-            {{ d.getDate() }}
-          </button>
-        </div>
-      </div>
+      </Transition>
     </div>
   </div>
 </template>
+
+<style scoped>
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+
+.slide-left-enter-from  { transform: translateX(40px); opacity: 0; }
+.slide-left-leave-to    { transform: translateX(-40px); opacity: 0; }
+
+.slide-right-enter-from { transform: translateX(-40px); opacity: 0; }
+.slide-right-leave-to   { transform: translateX(40px); opacity: 0; }
+</style>
