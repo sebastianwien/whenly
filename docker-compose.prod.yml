@@ -54,8 +54,8 @@ services:
       - frontend
       - backend
     ports:
-      # Only bind on loopback — ev-monitor nginx proxies from outside
-      - "127.0.0.1:8091:80"
+      # Bind on all interfaces so ev-monitor nginx container can reach it via host bridge IP
+      - "8091:80"
 
 volumes:
   postgres-data:
