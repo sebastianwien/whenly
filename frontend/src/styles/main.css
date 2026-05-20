@@ -244,10 +244,10 @@ h1, h2, h3, h4, .font-serif {
       radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--color-sand-100) 5%, transparent) 1px, transparent 0);
     background-size: 22px 22px;
   }
-  .input, .textarea, .select { background-color: var(--color-ink-700); color: var(--color-sand-50); border-color: var(--color-sand-100); }
+  .input, .textarea, .select { background-color: var(--color-ink-700); color: var(--color-sand-50); border-color: var(--color-sand-300); }
   .input::placeholder, .textarea::placeholder { color: var(--color-sand-400); }
   .input:focus, .textarea:focus, .select:focus { background-color: var(--color-ink-500); color: var(--color-sand-50); }
-  .surface, .surface-soft { background-color: var(--color-ink-700); border-color: var(--color-sand-100); }
+  .surface, .surface-soft { background-color: var(--color-ink-700); border-color: var(--color-sand-300); }
   .btn-primary { background-color: var(--color-sand-100); color: var(--color-ink-900); border-color: var(--color-sand-100); box-shadow: 2px 2px 0 0 var(--color-clay-500); }
   .btn-primary:hover { background-color: var(--color-sand-50); color: var(--color-ink-900); }
   .btn-outline { background-color: var(--color-ink-900); color: var(--color-sand-100); border-color: var(--color-sand-100); box-shadow: 2px 2px 0 0 var(--color-clay-500); }
