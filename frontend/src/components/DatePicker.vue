@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
+import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
 import {
   startOfWeek, addDays, addWeeks, format,
   isBefore, startOfDay, isSameDay, getMonth, getYear
@@ -109,33 +109,27 @@ function quickLabel(d: Date): string {
     </div>
 
     <!-- Calendar -->
-    <div class="surface-soft rounded-xl p-4 select-none">
-      <!-- Navigation header -->
-      <div class="flex items-center justify-between mb-3">
-        <button type="button" class="btn btn-ghost p-1" :disabled="offset === 0" @click="prev">
-          <ChevronLeftIcon class="w-5 h-5" />
-        </button>
-        <span class="text-sm text-[var(--color-sand-400)] font-medium capitalize">
+    <div class="surface-soft rounded-xl p-4 select-none flex gap-3">
+      <!-- Left: weekday headers + tape -->
+      <div class="flex-1 min-w-0">
+        <!-- Month label -->
+        <div class="text-sm text-[var(--color-sand-400)] font-medium capitalize mb-2">
           {{ headerLabel }}
-        </span>
-        <button type="button" class="btn btn-ghost p-1" :disabled="offset + VISIBLE_WEEKS >= TOTAL_WEEKS" @click="next">
-          <ChevronRightIcon class="w-5 h-5" />
-        </button>
-      </div>
-
-      <!-- Weekday headers (fixed) -->
-      <div class="grid grid-cols-7 mb-1">
-        <div
-          v-for="wd in weekdayLabels"
-          :key="wd"
-          class="text-center text-xs text-[var(--color-sand-400)] font-medium py-1"
-        >
-          {{ wd }}
         </div>
-      </div>
 
-      <!-- Tape window -->
-      <div class="overflow-hidden relative" :style="{ height: visibleHeight + 'px' }">
+        <!-- Weekday headers (fixed) -->
+        <div class="grid grid-cols-7 mb-1">
+          <div
+            v-for="wd in weekdayLabels"
+            :key="wd"
+            class="text-center text-xs text-[var(--color-sand-400)] font-medium py-1"
+          >
+            {{ wd }}
+          </div>
+        </div>
+
+        <!-- Tape window -->
+        <div class="overflow-hidden relative" :style="{ height: visibleHeight + 'px' }">
         <div
           class="absolute w-full"
           style="transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)"
@@ -171,6 +165,17 @@ function quickLabel(d: Date): string {
             </div>
           </template>
         </div>
+      </div>
+      </div>
+
+      <!-- Right: vertical nav buttons -->
+      <div class="flex flex-col justify-center gap-2 pl-1">
+        <button type="button" class="btn btn-ghost p-1" :disabled="offset === 0" @click="prev">
+          <ChevronUpIcon class="w-5 h-5" />
+        </button>
+        <button type="button" class="btn btn-ghost p-1" :disabled="offset + VISIBLE_WEEKS >= TOTAL_WEEKS" @click="next">
+          <ChevronDownIcon class="w-5 h-5" />
+        </button>
       </div>
     </div>
   </div>
