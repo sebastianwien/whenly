@@ -93,7 +93,7 @@ function monthLabelForWeek(week: Date[], wi: number): string | null {
         <button type="button" class="btn btn-ghost p-1" :disabled="offset === 0" @click="prev">
           <ChevronLeftIcon class="w-5 h-5" />
         </button>
-        <span class="text-sm text-[var(--color-ink-100)] capitalize">
+        <span class="text-sm text-[var(--color-sand-400)] font-medium capitalize">
           {{ weeks[0][0].toLocaleDateString(locale, { month: 'long', year: 'numeric' }) }}
         </span>
         <button type="button" class="btn btn-ghost p-1" @click="next">
@@ -106,7 +106,7 @@ function monthLabelForWeek(week: Date[], wi: number): string | null {
         <div
           v-for="wd in weekdayLabels"
           :key="wd"
-          class="text-center text-xs text-[var(--color-ink-100)] font-medium py-1"
+          class="text-center text-xs text-[var(--color-sand-400)] font-medium py-1"
         >
           {{ wd }}
         </div>
@@ -117,7 +117,7 @@ function monthLabelForWeek(week: Date[], wi: number): string | null {
         <!-- Month separator -->
         <div
           v-if="monthLabelForWeek(week, wi)"
-          class="col-span-7 text-xs text-[var(--color-ink-100)] font-medium capitalize pt-2 pb-1 border-t border-[var(--color-sand-300)] mt-1 first:border-t-0 first:mt-0 first:pt-0"
+          class="col-span-7 text-xs text-[var(--color-sand-400)] font-semibold capitalize pt-2 pb-1 border-t border-[var(--color-sand-300)] mt-1 first:border-t-0 first:mt-0 first:pt-0"
         >
           {{ monthLabelForWeek(week, wi) }}
         </div>
