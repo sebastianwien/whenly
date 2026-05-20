@@ -34,11 +34,24 @@ Mo  Di  Mi  Do  Fr  Sa  So
 - Klick auf ausgewählten Tag: entfernt ihn wieder
 - Navigation per `<` / `>` zum Monat wechseln
 
-### Uhrzeitsteuerung (nur bei DATE_TIME)
-
-Direkt unterhalb des Kalenders:
+### Reihenfolge und Default Optionstyp
 
 ```
+OPTIONSTYP
+[Nur Datum]  [Datum + Uhrzeit]  [Textoptionen]
+```
+
+- Default: `DATE_ONLY` (erster Button, vorausgewählt)
+- Reihenfolge: Nur Datum - Datum+Uhrzeit - Textoptionen
+
+### Uhrzeitsteuerung (nur bei DATE_TIME)
+
+Erscheint direkt unterhalb der Typ-Buttons, sobald "Datum + Uhrzeit" gewählt wird:
+
+```
+OPTIONSTYP
+[Nur Datum]  [Datum + Uhrzeit ✓]  [Textoptionen]
+
 ☑ Uhrzeit für alle gleich
   [08:00] [09:00] [10:00] [12:00] [18:00] [19:00] [20:00]  [__:__]
 ```
@@ -46,6 +59,7 @@ Direkt unterhalb des Kalenders:
 - Checkbox standardmäßig angehakt
 - Zeitslots als klickbare Chips (häufige Zeiten), plus freies Eingabefeld `[__:__]` als Fallback
 - Kein nativer `<input type="time">` - zu schlechte Mobile-UX
+- Wechsel zurück zu DATE_ONLY: Uhrzeitsteuerung verschwindet, `timeOverridden` wird für alle Optionen zurückgesetzt
 
 ### Ausgewählt-Liste mit inline Override
 
@@ -95,6 +109,7 @@ interface OptionDraft {
   timeOverridden: boolean
 }
 
+const pollType = ref<PollType>('DATE_ONLY')  // Default: Nur Datum
 const globalTime = ref<string | null>('19:00')
 const sameTimeForAll = ref(true)
 ```
