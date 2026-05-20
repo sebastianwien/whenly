@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${WHENLY_DB_USER:-whenly}
+      POSTGRES_PASSWORD: ${WHENLY_DB_PASSWORD}
+      POSTGRES_DB: ${WHENLY_DB_NAME:-whenly}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      WHENLY_DB_URL: jdbc:postgresql://postgres:5432/${WHENLY_DB_NAME:-whenly}
+      WHENLY_DB_USER: ${WHENLY_DB_USER:-whenly}
+      WHENLY_DB_PASSWORD: ${WHENLY_DB_PASSWORD}
+      WHENLY_BASE_URL: ${WHENLY_BASE_URL}
+      WHENLY_PORT: 8080
+      SPRING_PROFILES_ACTIVE: prod
+      WHENLY_CORS_ALLOWED_ORIGINS: ${WHENLY_BASE_URL}
+      WHENLY_SMTP_HOST: ${WHENLY_SMTP_HOST:-}
+      WHENLY_SMTP_PORT: ${WHENLY_SMTP_PORT:-587}
+      WHENLY_SMTP_USER: ${WHENLY_SMTP_USER:-}
+      WHENLY_SMTP_PASSWORD: ${WHENLY_SMTP_PASSWORD:-}
+      WHENLY_MAIL_ENABLED: ${WHENLY_MAIL_ENABLED:-false}
+      WHENLY_MAIL_FROM: ${WHENLY_MAIL_FROM:-noreply@whenly.de}
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      # Only bind on loopback — ev-monitor nginx proxies from outside
+      - "127.0.0.1:8091:80"
+
+volumes:
+  postgres-data:

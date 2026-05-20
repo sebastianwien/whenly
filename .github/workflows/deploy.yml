@@ -1,0 +1,45 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Hetzner Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 2222
+          script: |
+            cd /opt/whenly/whenly
+            echo "Pulling latest changes..."
+            git fetch origin main
+            git reset --hard origin/main
+            chmod +x deploy.sh
+            ./deploy.sh
+
+      - name: Health Check
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 2222
+          script: |
+            echo "Final health check via public URL..."
+            for i in $(seq 1 6); do
+              if curl -sf https://whenly.de/actuator/health | grep -q '"status":"UP"'; then
+                echo "whenly.de is healthy"
+                exit 0
+              fi
+              sleep 10
+            done
+            echo "Health check failed after 60s"
+            exit 1

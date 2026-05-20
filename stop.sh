@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
-# whenly: stop and remove the local stack. Postgres volume is kept.
-# Pass --purge to also drop the volume (all polls + votes gone).
-
-set -euo pipefail
 cd "$(dirname "$0")"
+echo "Stopping whenly development environment..."
 
-if [[ "${1:-}" == "--purge" ]]; then
-  echo "⚠ also dropping the postgres volume"
-  docker compose down -v
-else
-  docker compose down
+if [ -f .backend.pid ]; then
+  kill "$(cat .backend.pid)" 2>/dev/null && echo "Backend stopped" || true
+  rm .backend.pid
 fi
+
+if [ -f .frontend.pid ]; then
+  kill "$(cat .frontend.pid)" 2>/dev/null && echo "Frontend stopped" || true
+  rm .frontend.pid
+fi
+
+docker compose -f docker-compose.dev.yml down
+echo "All services stopped."
