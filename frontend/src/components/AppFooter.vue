@@ -16,6 +16,9 @@ const { t } = useI18n()
         <RouterLink to="/about" class="underline underline-offset-2 hover:text-[var(--color-clay-600)]">
           {{ t('landing.footer.privacy') }}
         </RouterLink>
+        <RouterLink to="/impressum" class="underline underline-offset-2 hover:text-[var(--color-clay-600)]">
+          {{ t('landing.footer.impressum') }}
+        </RouterLink>
       </div>
     </div>
   </footer>

@@ -41,6 +41,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: 'About · whenly' }
   },
   {
+    path: '/impressum',
+    name: 'impressum',
+    component: () => import('@/views/ImpressumView.vue'),
+    meta: { title: 'Impressum · whenly' }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('@/views/NotFoundView.vue')

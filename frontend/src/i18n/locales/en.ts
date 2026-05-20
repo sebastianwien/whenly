@@ -49,9 +49,10 @@ export default {
       step3: { title: 'Pick a winner', body: 'whenly suggests the best slot. You finalise. Calendar export ready.' }
     },
     footer: {
-      built: 'Open source under the AGPL. No trackers. No ads.',
+      built: 'Open source under the AGPL. No trackers.',
       sourceCode: 'Source code',
-      privacy: 'Privacy'
+      privacy: 'Privacy',
+      impressum: 'Legal notice'
     }
   },
   create: {
@@ -187,5 +188,26 @@ export default {
     tech: 'Java 21, Spring Boot 4, PostgreSQL, Vue 3 + TypeScript, Tailwind v4, Docker, nginx.',
     licenseHeading: 'License',
     license: 'AGPL-3.0. Forks must stay open. SaaS providers must publish their changes.'
+  },
+  impressum: {
+    heading: 'Legal Notice',
+    tmg: 'Information according to § 5 TMG',
+    contact: 'Contact',
+    responsible: 'Responsible for content according to § 55 para. 2 RStV',
+    euDisputeHeading: 'EU Dispute Resolution',
+    euDispute: 'The European Commission provides a platform for online dispute resolution (ODR): ',
+    euDisputeEmail: 'Our email address can be found in the legal notice above.',
+    arbitrationHeading: 'Consumer dispute resolution',
+    arbitration: 'We are not willing or obliged to participate in dispute resolution proceedings before a consumer arbitration board.',
+    liabilityContentHeading: 'Liability for content',
+    liabilityContent1: 'As a service provider, we are responsible for our own content on these pages in accordance with § 7 para. 1 TMG under general law. According to §§ 8 to 10 TMG, we are not obliged as a service provider to monitor transmitted or stored third-party information or to investigate circumstances that indicate illegal activity.',
+    liabilityContent2: 'Obligations to remove or block the use of information under general law remain unaffected. Liability in this regard is only possible from the time of knowledge of a specific infringement. Upon becoming aware of corresponding infringements, we will remove this content immediately.',
+    liabilityLinksHeading: 'Liability for links',
+    liabilityLinks1: 'Our offer contains links to external websites of third parties, on whose contents we have no influence. Therefore we cannot assume any liability for these external contents. The respective provider or operator of the pages is always responsible for the contents of the linked pages.',
+    liabilityLinks2: 'The linked pages were checked for possible legal violations at the time of linking. Illegal contents were not recognizable at the time of linking. A permanent content control of the linked pages is, however, not reasonable without concrete evidence of an infringement. Upon becoming aware of infringements, we will remove such links immediately.',
+    copyrightHeading: 'Copyright',
+    copyright1: 'The content and works created by the site operators on these pages are subject to German copyright law. Duplication, processing, distribution and any form of commercialization of such material beyond the scope of the copyright law require the written consent of the respective author or creator.',
+    copyright2: 'Downloads and copies of this site are only permitted for private, non-commercial use. Insofar as the content on this site was not created by the operator, the copyrights of third parties are respected. In particular, third-party content is identified as such. Should you become aware of a copyright infringement, please inform us accordingly. Upon becoming aware of infringements, we will remove such content immediately.',
+    back: '← Back to home'
   }
 }
