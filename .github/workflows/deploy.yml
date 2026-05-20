@@ -33,10 +33,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 2222
           script: |
-            echo "Final health check via public URL..."
+            echo "Final health check..."
             for i in $(seq 1 6); do
-              if curl -sf https://whenly.de/actuator/health | grep -q '"status":"UP"'; then
-                echo "whenly.de is healthy"
+              if curl -sf http://127.0.0.1:8091/actuator/health | grep -q '"status":"UP"'; then
+                echo "whenly is healthy"
                 exit 0
               fi
               sleep 10
