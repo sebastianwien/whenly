@@ -2,7 +2,7 @@
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { getPoll, getSuggest, castVote, removeVote, addComment } from '@/api/polls'
+import { getPoll, getSuggest, castVote, removeVote } from '@/api/polls'
 import { useParticipantTokens } from '@/stores/participantToken'
 import { ApiError } from '@/api/client'
 import type { Poll, SuggestResult, VoteValue } from '@/types'
@@ -13,8 +13,7 @@ import {
   ClipboardDocumentIcon,
   CheckIcon,
   ArrowDownTrayIcon,
-  TrashIcon,
-  ChatBubbleLeftEllipsisIcon
+  TrashIcon
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps<{ publicId: string }>()
@@ -33,10 +32,6 @@ const editing = ref(false)
 const saving = ref(false)
 const saveError = ref<string | null>(null)
 
-const commentAuthor = ref('')
-const commentBody = ref('')
-const commentOption = ref<string | null>(null)
-const commentPosting = ref(false)
 
 const copied = ref(false)
 let pollTimer: number | null = null
@@ -128,22 +123,6 @@ function onVoteChange(optionId: string, value: VoteValue) {
   myVotes.value.set(optionId, value)
 }
 
-async function postComment() {
-  if (!commentBody.value.trim()) return
-  commentPosting.value = true
-  try {
-    await addComment(props.publicId, {
-      authorName: (commentAuthor.value || myName.value || 'Anonymous').trim(),
-      body: commentBody.value.trim(),
-      optionId: commentOption.value ?? null,
-      participantToken: myToken.value ?? null
-    })
-    commentBody.value = ''
-    commentOption.value = null
-    await load(true)
-  } catch { /* ignore */ }
-  finally { commentPosting.value = false }
-}
 
 async function copyShare() {
   await navigator.clipboard.writeText(window.location.origin + '/p/' + props.publicId)
@@ -277,53 +256,6 @@ onBeforeUnmount(() => { if (pollTimer) clearInterval(pollTimer) })
         </div>
       </section>
 
-      <!-- Comments -->
-      <section class="mb-12">
-        <h2 class="font-serif text-2xl mb-3 flex items-center gap-2">
-          <ChatBubbleLeftEllipsisIcon class="w-6 h-6" />
-          {{ t('poll.comments.heading') }}
-        </h2>
-        <div v-if="poll.comments.length === 0" class="text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)] mb-4">
-          {{ t('poll.comments.empty') }}
-        </div>
-        <ul v-else class="space-y-3 mb-6">
-          <li v-for="c in poll.comments" :key="c.id" class="surface-soft p-3">
-            <p class="text-sm">
-              <strong>{{ c.authorName }}</strong>
-              <span v-if="c.optionId" class="chip ml-2 text-[10px]">
-                {{ formatOptionLabel(poll.options.find(o => o.id === c.optionId)!, poll.type, poll.timezone, locale) }}
-              </span>
-              <span class="text-xs text-[var(--color-ink-50)] ml-2">{{ formatRelative(c.createdAt, locale) }}</span>
-            </p>
-            <p class="text-sm whitespace-pre-line mt-0.5">{{ c.body }}</p>
-          </li>
-        </ul>
-        <div class="surface p-4 space-y-3">
-          <h3 class="font-medium">{{ t('poll.comments.addHeading') }}</h3>
-          <div>
-            <label class="field-label" for="comment-author">{{ t('poll.comments.authorPlaceholder') }}</label>
-            <input id="comment-author" v-model="commentAuthor" class="input"
-                   :placeholder="t('poll.comments.authorPlaceholder')" maxlength="120" />
-          </div>
-          <div>
-            <label class="field-label" for="comment-body">{{ t('poll.comments.heading') }}</label>
-            <textarea id="comment-body" v-model="commentBody" class="textarea"
-                      :placeholder="t('poll.comments.bodyPlaceholder')" maxlength="2000" />
-          </div>
-          <div>
-            <label class="field-label" for="comment-option">{{ t('poll.comments.attach') }}</label>
-            <select id="comment-option" v-model="commentOption" class="select">
-              <option :value="null">{{ t('poll.comments.attachNone') }}</option>
-              <option v-for="opt in poll.options" :key="opt.id" :value="opt.id">
-                {{ formatOptionLabel(opt, poll.type, poll.timezone, locale) }}
-              </option>
-            </select>
-          </div>
-          <button class="btn btn-primary" :disabled="!commentBody.trim() || commentPosting" @click="postComment">
-            {{ commentPosting ? t('common.loading') : t('poll.comments.post') }}
-          </button>
-        </div>
-      </section>
 
       <p class="text-xs text-[var(--color-ink-50)] text-center">
         {{ t('create.settings.retention.title') }} {{ retentionRelative }}
