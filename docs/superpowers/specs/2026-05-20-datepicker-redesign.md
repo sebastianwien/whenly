@@ -56,10 +56,11 @@ OPTIONSTYP
   [08:00] [09:00] [10:00] [12:00] [18:00] [19:00] [20:00]  [__:__]
 ```
 
+- Erscheint/verschwindet per Slide-down/Slide-up Animation (CSS `max-height` Transition)
 - Checkbox standardmäßig angehakt
 - Zeitslots als klickbare Chips (häufige Zeiten), plus freies Eingabefeld `[__:__]` als Fallback
 - Kein nativer `<input type="time">` - zu schlechte Mobile-UX
-- Wechsel zurück zu DATE_ONLY: Uhrzeitsteuerung verschwindet, `timeOverridden` wird für alle Optionen zurückgesetzt
+- Wechsel zurück zu DATE_ONLY oder GENERIC: Uhrzeitsteuerung slidet raus, `timeOverridden` wird für alle Optionen zurückgesetzt
 
 ### Ausgewählt-Liste mit inline Override
 
