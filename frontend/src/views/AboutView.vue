@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { useSeoHead } from '@/composables/useSeoHead'
+
 const { t } = useI18n()
+
+useSeoHead({
+  title: 'About - whenly',
+  description: 'whenly is a privacy-friendly open-source group scheduling tool. No accounts, no trackers.',
+  canonical: 'https://whenly.de/about',
+})
 </script>
 
 <template>

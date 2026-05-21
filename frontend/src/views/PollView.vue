@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { getPoll, getSuggest, castVote, removeVote } from '@/api/polls'
+import { useSeoHead } from '@/composables/useSeoHead'
 import { useParticipantTokens } from '@/stores/participantToken'
 import { ApiError } from '@/api/client'
 import type { Poll, SuggestResult, VoteValue } from '@/types'
@@ -139,6 +140,33 @@ onMounted(async () => {
   pollTimer = window.setInterval(() => load(false), 10_000)
 })
 onBeforeUnmount(() => { if (pollTimer) clearInterval(pollTimer) })
+
+watchEffect(() => {
+  if (!poll.value) {
+    useSeoHead({ title: 'Poll - whenly' })
+    return
+  }
+  const p = poll.value
+  const title = `${p.title} - whenly`
+  const description = p.description
+    ? `${p.description} - Vote on whenly`
+    : `Group scheduling poll: ${p.title}. Vote on whenly - no account needed.`
+  const canonical = `https://whenly.de/p/${p.publicId}`
+
+  const jsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: p.title,
+    url: canonical,
+    organizer: { '@type': 'Organization', name: 'whenly', url: 'https://whenly.de' },
+  }
+  if (p.description) jsonLd['description'] = p.description
+  if (p.location) jsonLd['location'] = { '@type': 'Place', name: p.location }
+  const dates = p.options.filter(o => o.startAt).map(o => o.startAt!).sort()
+  if (dates.length > 0) jsonLd['startDate'] = dates[0]
+
+  useSeoHead({ title, description, canonical, jsonLd })
+})
 </script>
 
 <template>

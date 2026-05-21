@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useSeoHead } from '@/composables/useSeoHead'
 
 const { t } = useI18n()
 const email = computed(() => ['impressum', 'whenly.app'].join('@'))
+
+useSeoHead({ title: 'Impressum - whenly', noindex: true })
 </script>
 
 <template>

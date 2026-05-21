@@ -3,6 +3,9 @@ import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { CheckBadgeIcon, TrashIcon, ArrowUturnLeftIcon } from '@heroicons/vue/24/outline'
+import { useSeoHead } from '@/composables/useSeoHead'
+
+useSeoHead({ title: 'Admin - whenly', noindex: true })
 import { getPollAsAdmin, finalizePoll, reopenPoll, deletePoll } from '@/api/polls'
 import { formatOptionLabel } from '@/lib/format'
 import type { Poll } from '@/types'

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { useSeoHead } from '@/composables/useSeoHead'
 import {
   CalendarDaysIcon,
   SparklesIcon,
@@ -10,6 +11,32 @@ import {
 } from '@heroicons/vue/24/outline'
 
 const { t } = useI18n()
+
+useSeoHead({
+  title: 'whenly - group scheduling without the dark patterns',
+  description: 'whenly - privacy-friendly open-source group scheduling. No accounts, no trackers, no dark patterns.',
+  canonical: 'https://whenly.de/',
+  jsonLd: [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'whenly',
+      url: 'https://whenly.de',
+      logo: 'https://whenly.de/favicon.svg',
+      description: 'Privacy-friendly open-source group scheduling.',
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: 'whenly',
+      operatingSystem: 'Web',
+      applicationCategory: 'ProductivityApplication',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+      url: 'https://whenly.de',
+      description: 'Privacy-friendly open-source group scheduling without accounts or trackers.',
+    },
+  ],
+})
 
 const features = [
   { icon: CheckCircleIcon, key: 'noAccount' },

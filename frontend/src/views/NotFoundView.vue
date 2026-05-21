@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { useSeoHead } from '@/composables/useSeoHead'
+
 const { t } = useI18n()
+
+useSeoHead({ title: '404 - whenly', noindex: true })
 </script>
 
 <template>

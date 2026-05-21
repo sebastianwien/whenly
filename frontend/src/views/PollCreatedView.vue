@@ -3,6 +3,9 @@ import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { ClipboardDocumentIcon, CheckIcon, ArrowTopRightOnSquareIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
+import { useSeoHead } from '@/composables/useSeoHead'
+
+useSeoHead({ title: 'Share your poll - whenly', noindex: true })
 import { getPollAsAdmin } from '@/api/polls'
 import type { Poll } from '@/types'
 
