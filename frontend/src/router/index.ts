@@ -61,7 +61,3 @@ export const router = createRouter({
   }
 })
 
-router.afterEach((to) => {
-  const title = (to.meta?.title as string | undefined) ?? 'whenly'
-  document.title = title
-})
