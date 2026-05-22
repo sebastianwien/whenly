@@ -2,7 +2,7 @@
 
 > Working title — easy to rename later. See `docs/OPEN_QUESTIONS.md`.
 
-A privacy-friendly, open-source alternative to Doodle and Nuudel. Create a poll, share a link, let the app pick the best slot. No accounts required, no trackers, no ads, no dark patterns. Data auto-deletes after the retention window.
+A privacy-friendly, open-source alternative to Doodle and Nuudel. Create a poll, share a link, let the app pick the best slot. No accounts required, no trackers, no dark patterns. Data auto-deletes after the retention window.
 
 ## What's in the box
 

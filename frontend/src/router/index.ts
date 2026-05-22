@@ -41,6 +41,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: 'About · whenly' }
   },
   {
+    path: '/datenschutz',
+    name: 'privacy',
+    component: () => import('@/views/PrivacyView.vue'),
+    meta: { title: 'Datenschutz · whenly' }
+  },
+  {
     path: '/impressum',
     name: 'impressum',
     component: () => import('@/views/ImpressumView.vue'),

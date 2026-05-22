@@ -13,7 +13,7 @@ const { t } = useI18n()
         <a href="https://github.com/sebastianwien/whenly" class="underline underline-offset-2 hover:text-[var(--color-clay-600)]" rel="noreferrer noopener" target="_blank">
           {{ t('landing.footer.sourceCode') }}
         </a>
-        <RouterLink to="/about" class="underline underline-offset-2 hover:text-[var(--color-clay-600)]">
+        <RouterLink to="/datenschutz" class="underline underline-offset-2 hover:text-[var(--color-clay-600)]">
           {{ t('landing.footer.privacy') }}
         </RouterLink>
         <RouterLink to="/impressum" class="underline underline-offset-2 hover:text-[var(--color-clay-600)]">

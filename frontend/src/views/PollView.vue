@@ -8,6 +8,7 @@ import { useParticipantTokens } from '@/stores/participantToken'
 import { ApiError } from '@/api/client'
 import type { Poll, SuggestResult, VoteValue } from '@/types'
 import VoteGrid from '@/components/VoteGrid.vue'
+import AdSenseAd from '@/components/AdSenseAd.vue'
 import { formatOptionLabel, formatRelative } from '@/lib/format'
 import {
   SparklesIcon,
@@ -231,6 +232,9 @@ watchEffect(() => {
           <p v-if="saveError" class="text-sm text-[var(--color-clay-700)] font-medium">{{ saveError }}</p>
         </div>
       </section>
+
+      <!-- Ad: shown after vote is saved, not while editing -->
+      <AdSenseAd v-if="myToken && !editing && !poll.closedAt" />
 
       <!-- Results -->
       <section v-if="!poll.resultsHidden" class="mb-8">
