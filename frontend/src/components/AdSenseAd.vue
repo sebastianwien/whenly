@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-const AD_SLOT = 'YYYYYYYYYY'
+const AD_SLOT = '6666533624'
 const isConfigured = !AD_SLOT.includes('Y')
 
 onMounted(() => {
@@ -30,7 +30,6 @@ onMounted(() => {
       :data-ad-slot="AD_SLOT"
       data-ad-format="auto"
       data-full-width-responsive="true"
-      data-adtest="off"
     />
   </div>
 </template>
