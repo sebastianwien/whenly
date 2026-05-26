@@ -233,8 +233,8 @@ watchEffect(() => {
         </div>
       </section>
 
-      <!-- Ad: shown after vote is saved, not while editing -->
-      <AdSenseAd v-if="myToken && !editing && !poll.closedAt" />
+      <!-- Ad: shown after vote is saved; require 2+ participants to avoid thin-content policy violation -->
+      <AdSenseAd v-if="myToken && !editing && !poll.closedAt && poll.participantCount >= 2" />
 
       <!-- Results -->
       <section v-if="!poll.resultsHidden" class="mb-8">
