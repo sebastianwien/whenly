@@ -2,6 +2,7 @@ import { api } from './client'
 import type {
   CreatePollPayload,
   CreatePollResult,
+  PollOption,
   Poll,
   SuggestResult,
   VoteResult,
@@ -69,4 +70,18 @@ export function reopenPoll(adminToken: string) {
 
 export function deletePoll(adminToken: string) {
   return api<void>(`${base}/admin/${encodeURIComponent(adminToken)}`, { method: 'DELETE' })
+}
+
+export function addParticipantOption(publicId: string, label: string) {
+  return api<PollOption>(`${base}/${encodeURIComponent(publicId)}/options`, {
+    method: 'POST',
+    body: { label }
+  })
+}
+
+export function deleteAdminOption(adminToken: string, optionId: string) {
+  return api<void>(
+    `${base}/admin/${encodeURIComponent(adminToken)}/options/${encodeURIComponent(optionId)}`,
+    { method: 'DELETE' }
+  )
 }

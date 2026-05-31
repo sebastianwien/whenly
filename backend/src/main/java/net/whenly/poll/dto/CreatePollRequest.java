@@ -16,7 +16,7 @@ public record CreatePollRequest(
     @Size(max = 255) String location,
     @NotNull PollType type,
     @Size(max = 64) String timezone,
-    @Valid @NotNull @Size(min = 2, max = 100) List<OptionInput> options,
+    @Valid @NotNull @Size(min = 0, max = 100) List<OptionInput> options,
     @Valid Settings settings,
     @Email @Size(max = 255) String ownerEmail,
     @Min(0) Integer retentionDays) {

@@ -2,7 +2,7 @@
 import { ref, onMounted, onBeforeUnmount, computed, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { getPoll, getSuggest, castVote, removeVote } from '@/api/polls'
+import { getPoll, getSuggest, castVote, removeVote, addParticipantOption } from '@/api/polls'
 import { useSeoHead } from '@/composables/useSeoHead'
 import { useParticipantTokens } from '@/stores/participantToken'
 import { ApiError } from '@/api/client'
@@ -15,7 +15,8 @@ import {
   ClipboardDocumentIcon,
   CheckIcon,
   ArrowDownTrayIcon,
-  TrashIcon
+  TrashIcon,
+  PlusIcon
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps<{ publicId: string }>()
@@ -126,6 +127,31 @@ function onVoteChange(optionId: string, value: VoteValue) {
 }
 
 
+// OPEN poll: participant option suggestion
+const newOptionLabel = ref('')
+const addingOption = ref(false)
+const addOptionError = ref<string | null>(null)
+const addOptionSuccess = ref(false)
+
+async function suggestOption() {
+  if (!newOptionLabel.value.trim() || !poll.value) return
+  addingOption.value = true
+  addOptionError.value = null
+  addOptionSuccess.value = false
+  try {
+    await addParticipantOption(props.publicId, newOptionLabel.value.trim())
+    newOptionLabel.value = ''
+    addOptionSuccess.value = true
+    await load(true)
+    setTimeout(() => { addOptionSuccess.value = false }, 2000)
+  } catch (e) {
+    if (e instanceof ApiError) addOptionError.value = e.message
+    else addOptionError.value = t('common.error')
+  } finally {
+    addingOption.value = false
+  }
+}
+
 async function copyShare() {
   await navigator.clipboard.writeText(window.location.origin + '/p/' + props.publicId)
   copied.value = true
@@ -211,6 +237,31 @@ watchEffect(() => {
           {{ suggest.yesCount }} yes · {{ suggest.maybeCount }} maybe · {{ suggest.noCount }} no
         </p>
       </div>
+
+      <!-- OPEN poll: suggest new option -->
+      <section v-if="poll.type === 'OPEN' && !poll.closedAt" class="mb-6 surface p-5 sm:p-6">
+        <h2 class="font-serif text-xl mb-3">{{ t('poll.open.suggestHeading') }}</h2>
+        <div class="flex gap-2 items-start">
+          <input
+            v-model="newOptionLabel"
+            class="input flex-1"
+            :placeholder="t('poll.open.suggestPlaceholder')"
+            maxlength="200"
+            @keyup.enter="suggestOption"
+          />
+          <button
+            class="btn btn-outline shrink-0"
+            :disabled="addingOption || !newOptionLabel.trim()"
+            @click="suggestOption"
+          >
+            <PlusIcon class="w-5 h-5" />
+            {{ addingOption ? t('common.loading') : t('poll.open.suggestButton') }}
+          </button>
+        </div>
+        <p v-if="addOptionSuccess" class="text-sm mt-2 text-[var(--color-sage-600)]">{{ t('poll.open.suggestSuccess') }}</p>
+        <p v-if="addOptionError" class="text-sm mt-2 text-[var(--color-clay-700)]">{{ addOptionError }}</p>
+        <p class="text-xs mt-2 text-[var(--color-ink-50)]">{{ t('poll.open.suggestHint') }}</p>
+      </section>
 
       <!-- Vote section -->
       <section v-if="!poll.closedAt" class="mb-8">

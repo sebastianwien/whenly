@@ -40,6 +40,7 @@ const timezone = computed(() => Intl.DateTimeFormat().resolvedOptions().timeZone
 
 const isDateType = computed(() => pollType.value === 'DATE_TIME' || pollType.value === 'DATE_ONLY')
 const isDateTime = computed(() => pollType.value === 'DATE_TIME')
+const isOpen = computed(() => pollType.value === 'OPEN')
 
 // Reset time overrides when switching away from DATE_TIME
 watch(pollType, (val) => {
@@ -81,6 +82,9 @@ const selectedDates = computed(() => dateoptions.value.map(o => o.date))
 
 const valid = computed(() => {
   if (!title.value.trim()) return false
+  if (pollType.value === 'OPEN') {
+    return genericOptions.value.every(o => o.label.trim())
+  }
   if (pollType.value === 'GENERIC') {
     return genericOptions.value.length >= 2 && genericOptions.value.every(o => o.label.trim())
   }
@@ -113,7 +117,7 @@ async function submit() {
       location: location.value.trim() || null,
       type: pollType.value,
       timezone: timezone.value,
-      options: pollType.value === 'GENERIC'
+      options: (pollType.value === 'GENERIC' || pollType.value === 'OPEN')
         ? genericOptions.value.map(o => ({ startAt: null, endAt: null, label: o.label.trim() }))
         : dateoptions.value.map(o => {
             const time = resolveTime(o)
@@ -170,15 +174,18 @@ async function submit() {
         <div>
           <label class="field-label">{{ t('create.field.type') }}</label>
           <div class="flex flex-wrap gap-2">
-            <button v-for="opt in (['DATE_ONLY', 'DATE_TIME', 'GENERIC'] as PollType[])"
+            <button v-for="opt in (['DATE_ONLY', 'DATE_TIME', 'GENERIC', 'OPEN'] as PollType[])"
                     :key="opt"
                     type="button"
                     class="btn"
                     :class="pollType === opt ? 'btn-primary' : 'btn-outline'"
                     @click="pollType = opt">
-              {{ t(opt === 'DATE_TIME' ? 'create.type.dateTime' : opt === 'DATE_ONLY' ? 'create.type.dateOnly' : 'create.type.generic') }}
+              {{ t(opt === 'DATE_TIME' ? 'create.type.dateTime' : opt === 'DATE_ONLY' ? 'create.type.dateOnly' : opt === 'OPEN' ? 'create.type.open' : 'create.type.generic') }}
             </button>
           </div>
+          <p v-if="isOpen" class="text-sm text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)] mt-1">
+            {{ t('create.type.openHint') }}
+          </p>
         </div>
 
         <!-- Time controls (slide in for DATE_TIME) -->
@@ -238,15 +245,18 @@ async function submit() {
           </p>
         </template>
 
-        <!-- Generic text options -->
+        <!-- Generic / Open text options -->
         <template v-else>
-          <ul class="space-y-3">
+          <p v-if="isOpen && genericOptions.length === 0" class="text-sm text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)]">
+            {{ t('create.options.openSeedHint') }}
+          </p>
+          <ul v-if="genericOptions.length > 0" class="space-y-3">
             <li v-for="opt in genericOptions" :key="opt.id"
                 class="surface-soft p-4 flex items-center gap-3">
               <input v-model="opt.label" class="input flex-1"
                      :placeholder="t('create.options.labelPlaceholder')" maxlength="200" />
               <button type="button" class="btn btn-ghost text-sm"
-                      :disabled="genericOptions.length <= 2"
+                      :disabled="!isOpen && genericOptions.length <= 2"
                       @click="removeGeneric(opt.id)">
                 <span class="hidden sm:inline">{{ t('create.options.remove') }}</span>
               </button>
@@ -254,7 +264,7 @@ async function submit() {
           </ul>
           <button type="button" class="btn btn-outline mt-2" @click="addGeneric">
             <PlusIcon class="w-5 h-5" />
-            {{ t('create.options.add') }}
+            {{ t(isOpen ? 'create.options.addSeed' : 'create.options.add') }}
           </button>
         </template>
       </div>

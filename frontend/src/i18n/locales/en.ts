@@ -77,10 +77,14 @@ export default {
     type: {
       dateTime: 'Date + time',
       dateOnly: 'Date only',
-      generic: 'Text options'
+      generic: 'Text options',
+      open: 'Open vote',
+      openHint: 'Participants can suggest their own options while voting.'
     },
     options: {
       add: 'Add option',
+      addSeed: 'Add seed option (optional)',
+      openSeedHint: 'You can pre-fill options or leave empty - participants will add their own.',
       remove: 'Remove',
       start: 'Start',
       end: 'End (optional)',
@@ -125,6 +129,13 @@ export default {
     saveWarning: 'Save the admin link. It is the only way back into your poll. We will not email it to you.'
   },
   poll: {
+    open: {
+      suggestHeading: 'Suggest an option',
+      suggestPlaceholder: 'Your option…',
+      suggestButton: 'Suggest',
+      suggestSuccess: 'Option added.',
+      suggestHint: 'Your suggestion is immediately visible and voteable for everyone.'
+    },
     closed: 'This poll is closed.',
     finalized: 'Final date',
     smartSuggest: { heading: 'whenly suggests' },
@@ -167,6 +178,7 @@ export default {
     reopen: 'Re-open the poll',
     delete: 'Delete poll',
     confirmDelete: 'Delete the poll and all votes? This is immediate and cannot be undone.',
+    confirmDeleteOption: 'Delete this option and all its votes?',
     ownerEmail: 'Owner email'
   },
   common: {

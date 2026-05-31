@@ -1,8 +1,10 @@
 package net.whenly.poll;
 
 import jakarta.validation.Valid;
+import java.util.UUID;
 import net.whenly.domain.Poll;
-import org.springframework.transaction.annotation.Transactional;
+import net.whenly.domain.PollOption;
+import net.whenly.poll.dto.AddParticipantOptionRequest;
 import net.whenly.poll.dto.CreatePollRequest;
 import net.whenly.poll.dto.CreatePollResponse;
 import net.whenly.poll.dto.FinalizeRequest;
@@ -10,6 +12,7 @@ import net.whenly.poll.dto.PollResponse;
 import net.whenly.poll.dto.SuggestResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,6 +61,16 @@ public class PollController {
     return suggestService.suggest(poll);
   }
 
+  @PostMapping("/{publicId}/options")
+  public ResponseEntity<PollResponse.Option> addParticipantOption(
+      @PathVariable String publicId,
+      @Valid @RequestBody AddParticipantOptionRequest request) {
+    PollOption option = pollService.addParticipantOption(publicId, request);
+    PollResponse.Option dto = new PollResponse.Option(
+        option.getId(), option.getPosition(), null, null, option.getLabel());
+    return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+  }
+
   @Transactional(readOnly = true)
   @GetMapping("/admin/{adminToken}")
   public PollResponse getAsAdmin(@PathVariable String adminToken) {
@@ -83,9 +96,18 @@ public class PollController {
     return mapper.toResponse(poll, true, null);
   }
 
+  @DeleteMapping("/admin/{adminToken}/options/{optionId}")
+  public ResponseEntity<Void> deleteOption(
+      @PathVariable String adminToken,
+      @PathVariable UUID optionId) {
+    pollService.deleteOptionAsAdmin(adminToken, optionId);
+    return ResponseEntity.noContent().build();
+  }
+
   @DeleteMapping("/admin/{adminToken}")
   public ResponseEntity<Void> delete(@PathVariable String adminToken) {
     pollService.delete(adminToken);
     return ResponseEntity.noContent().build();
   }
+
 }

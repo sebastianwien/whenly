@@ -1,4 +1,4 @@
-export type PollType = 'DATE_TIME' | 'DATE_ONLY' | 'GENERIC'
+export type PollType = 'DATE_TIME' | 'DATE_ONLY' | 'GENERIC' | 'OPEN'
 export type VoteValue = 'YES' | 'MAYBE' | 'NO'
 
 export interface PollOption {

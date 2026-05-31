@@ -6,7 +6,7 @@ import { CheckBadgeIcon, TrashIcon, ArrowUturnLeftIcon } from '@heroicons/vue/24
 import { useSeoHead } from '@/composables/useSeoHead'
 
 useSeoHead({ title: 'Admin - whenly', noindex: true })
-import { getPollAsAdmin, finalizePoll, reopenPoll, deletePoll } from '@/api/polls'
+import { getPollAsAdmin, finalizePoll, reopenPoll, deletePoll, deleteAdminOption } from '@/api/polls'
 import { formatOptionLabel } from '@/lib/format'
 import type { Poll } from '@/types'
 import { ApiError } from '@/api/client'
@@ -71,6 +71,15 @@ async function remove() {
   } finally { acting.value = false }
 }
 
+async function removeOption(optionId: string) {
+  if (!confirm(t('admin.confirmDeleteOption'))) return
+  acting.value = true
+  try {
+    await deleteAdminOption(props.adminToken, optionId)
+    poll.value = await getPollAsAdmin(props.adminToken)
+  } finally { acting.value = false }
+}
+
 onMounted(load)
 </script>
 
@@ -105,7 +114,10 @@ onMounted(load)
                 {{ counts.get(opt.id)?.yes }} yes · {{ counts.get(opt.id)?.maybe }} maybe · {{ counts.get(opt.id)?.no }} no
               </p>
             </div>
-            <div class="justify-self-end">
+            <div class="justify-self-end flex gap-2">
+              <button v-if="poll.type === 'OPEN'" class="btn btn-ghost text-sm" :disabled="acting" @click="removeOption(opt.id)">
+                <TrashIcon class="w-4 h-4" />
+              </button>
               <button v-if="poll.finalizedOptionId === opt.id"
                       class="btn btn-outline" :disabled="acting" @click="reopen">
                 <ArrowUturnLeftIcon class="w-4 h-4" /> {{ t('admin.reopen') }}

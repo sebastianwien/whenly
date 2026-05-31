@@ -13,8 +13,10 @@ import net.whenly.domain.AppUser;
 import net.whenly.domain.Poll;
 import net.whenly.domain.PollOption;
 import net.whenly.domain.PollType;
+import net.whenly.poll.dto.AddParticipantOptionRequest;
 import net.whenly.poll.dto.CreatePollRequest;
 import net.whenly.poll.dto.CreatePollResponse;
+import net.whenly.repo.PollOptionRepository;
 import net.whenly.repo.PollRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +25,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class PollService {
 
   private final PollRepository pollRepository;
+  private final PollOptionRepository pollOptionRepository;
   private final WhenlyProperties properties;
 
-  public PollService(PollRepository pollRepository, WhenlyProperties properties) {
+  public PollService(
+      PollRepository pollRepository,
+      PollOptionRepository pollOptionRepository,
+      WhenlyProperties properties) {
     this.pollRepository = pollRepository;
+    this.pollOptionRepository = pollOptionRepository;
     this.properties = properties;
   }
 
@@ -114,9 +121,53 @@ public class PollService {
     return pollRepository.findByOwnerOrderByCreatedAtDesc(owner);
   }
 
+  @Transactional
+  public PollOption addParticipantOption(String publicId, AddParticipantOptionRequest request) {
+    Poll poll = getByPublicId(publicId);
+    if (poll.getPollType() != PollType.OPEN) {
+      throw ApiException.badRequest("not_open_poll", "Only OPEN polls accept participant-suggested options");
+    }
+    if (poll.isClosed()) {
+      throw ApiException.conflict("poll_closed", "This poll is closed");
+    }
+    if (poll.getOptions().size() >= 100) {
+      throw ApiException.badRequest("too_many_options", "This poll has reached the maximum number of options");
+    }
+
+    String label = request.label().trim();
+    boolean duplicate = poll.getOptions().stream()
+        .anyMatch(o -> label.equalsIgnoreCase(o.getLabel()));
+    if (duplicate) {
+      throw ApiException.conflict("option_duplicate", "This option already exists");
+    }
+
+    int position = poll.getOptions().stream().mapToInt(PollOption::getPosition).max().orElse(-1) + 1;
+    PollOption option = new PollOption(poll, position, null, null, label);
+    poll.getOptions().add(option);
+    poll.touch();
+    pollRepository.saveAndFlush(poll);
+    return option;
+  }
+
+  @Transactional
+  public void deleteOptionAsAdmin(String adminToken, java.util.UUID optionId) {
+    Poll poll = getByAdminToken(adminToken);
+    PollOption option = pollOptionRepository.findById(optionId)
+        .orElseThrow(() -> ApiException.notFound("option_not_found"));
+    if (!option.getPoll().getId().equals(poll.getId())) {
+      throw ApiException.forbidden("option_poll_mismatch");
+    }
+    poll.getOptions().remove(option);
+    pollOptionRepository.delete(option);
+    poll.touch();
+  }
+
   private void validateOptions(PollType type, List<CreatePollRequest.OptionInput> options) {
-    if (options == null || options.size() < 2) {
-      throw ApiException.badRequest("too_few_options", "A poll needs at least two options");
+    int minOptions = type == PollType.OPEN ? 0 : 2;
+    if (options == null || options.size() < minOptions) {
+      throw ApiException.badRequest("too_few_options",
+          type == PollType.OPEN ? "An OPEN poll accepts zero or more seed options"
+              : "A poll needs at least two options");
     }
     if (options.size() > 100) {
       throw ApiException.badRequest("too_many_options", "A poll supports at most 100 options");
@@ -131,7 +182,7 @@ public class PollService {
             throw ApiException.badRequest("option_end_before_start", "End must be after start");
           }
         }
-        case GENERIC -> {
+        case GENERIC, OPEN -> {
           if (o.label() == null || o.label().isBlank()) {
             throw ApiException.badRequest("option_missing_label", "Generic options need a label");
           }
@@ -145,7 +196,7 @@ public class PollService {
       case DATE_TIME, DATE_ONLY -> options.stream()
           .sorted(Comparator.comparing(CreatePollRequest.OptionInput::startAt))
           .toList();
-      case GENERIC -> options;
+      case GENERIC, OPEN -> options;
     };
   }
 

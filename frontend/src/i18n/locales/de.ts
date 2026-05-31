@@ -77,10 +77,14 @@ export default {
     type: {
       dateTime: 'Datum + Uhrzeit',
       dateOnly: 'Nur Datum',
-      generic: 'Textoptionen'
+      generic: 'Textoptionen',
+      open: 'Offene Abstimmung',
+      openHint: 'Teilnehmende können beim Abstimmen selbst Optionen vorschlagen.'
     },
     options: {
       add: 'Option hinzufügen',
+      addSeed: 'Start-Option hinzufügen (optional)',
+      openSeedHint: 'Du kannst Optionen vorgeben oder leer lassen - Teilnehmende ergänzen selbst.',
       remove: 'Entfernen',
       start: 'Beginn',
       end: 'Ende (optional)',
@@ -125,6 +129,13 @@ export default {
     saveWarning: 'Speichere den Admin-Link. Er ist der einzige Weg zurück in deine Umfrage. Wir schicken ihn nicht per Mail.'
   },
   poll: {
+    open: {
+      suggestHeading: 'Option vorschlagen',
+      suggestPlaceholder: 'Deine Option…',
+      suggestButton: 'Vorschlagen',
+      suggestSuccess: 'Option wurde hinzugefügt.',
+      suggestHint: 'Dein Vorschlag ist sofort für alle sichtbar und abstimmbar.'
+    },
     closed: 'Diese Umfrage ist geschlossen.',
     finalized: 'Finaler Termin',
     smartSuggest: { heading: 'whenly schlägt vor' },
@@ -167,6 +178,7 @@ export default {
     reopen: 'Umfrage wieder öffnen',
     delete: 'Umfrage löschen',
     confirmDelete: 'Umfrage und alle Stimmen löschen? Das ist sofort und nicht rückgängig zu machen.',
+    confirmDeleteOption: 'Diese Option und alle dazugehörigen Stimmen löschen?',
     ownerEmail: 'E-Mail der erstellenden Person'
   },
   common: {
