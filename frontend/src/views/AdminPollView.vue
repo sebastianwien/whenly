@@ -182,6 +182,45 @@ onMounted(load)
           </li>
         </ul>
       </section>
+
+      <section v-if="poll.participants.length > 0" class="mt-6 sm:mt-8">
+        <div class="flex items-baseline gap-3 mb-2 sm:mb-3">
+          <h2 class="font-serif text-xl sm:text-2xl">{{ t('poll.results.heading') }}</h2>
+          <span class="text-sm text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)]">
+            {{ poll.participantCount }} {{ t('poll.results.participants') }}
+          </span>
+        </div>
+        <div class="overflow-x-auto -mx-1">
+          <table class="w-full border-collapse text-sm">
+            <thead>
+              <tr>
+                <th class="text-left p-2 sticky left-0 bg-[var(--color-sand-100)] dark:bg-[var(--color-ink-900)]">&nbsp;</th>
+                <th v-for="opt in poll.options" :key="opt.id" class="p-2 text-left font-medium font-serif">
+                  {{ formatOptionLabel(opt, poll.type, poll.timezone, locale) }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="p in poll.participants" :key="p.id" class="border-t border-[var(--color-sand-300)]">
+                <td class="p-2 font-medium sticky left-0 bg-[var(--color-sand-100)] dark:bg-[var(--color-ink-900)]">{{ p.name }}</td>
+                <td v-for="opt in poll.options" :key="opt.id" class="p-2">
+                  <span class="vote-pill !h-7 !min-w-[2.25rem] !text-xs px-2"
+                        :class="{
+                          'vote-yes': p.votes.find(v => v.optionId === opt.id)?.value === 'YES',
+                          'vote-maybe': p.votes.find(v => v.optionId === opt.id)?.value === 'MAYBE',
+                          'vote-no': p.votes.find(v => v.optionId === opt.id)?.value === 'NO',
+                          'vote-empty': !p.votes.find(v => v.optionId === opt.id)
+                        }">
+                    {{ p.votes.find(v => v.optionId === opt.id)?.value === 'YES' ? '✓'
+                       : p.votes.find(v => v.optionId === opt.id)?.value === 'MAYBE' ? '~'
+                       : p.votes.find(v => v.optionId === opt.id)?.value === 'NO' ? '✗' : '·' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </template>
   </section>
 </template>
