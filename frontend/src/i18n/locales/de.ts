@@ -179,6 +179,9 @@ export default {
     delete: 'Umfrage löschen',
     confirmDelete: 'Umfrage und alle Stimmen löschen? Das ist sofort und nicht rückgängig zu machen.',
     confirmDeleteOption: 'Diese Option und alle dazugehörigen Stimmen löschen?',
+    editOption: 'Option bearbeiten',
+    saveOption: 'Speichern',
+    cancelEdit: 'Abbrechen',
     ownerEmail: 'E-Mail der erstellenden Person'
   },
   common: {

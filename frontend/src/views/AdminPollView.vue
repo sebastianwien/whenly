@@ -2,11 +2,11 @@
 import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { CheckBadgeIcon, TrashIcon, ArrowUturnLeftIcon } from '@heroicons/vue/24/outline'
+import { CheckBadgeIcon, TrashIcon, ArrowUturnLeftIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { useSeoHead } from '@/composables/useSeoHead'
 
 useSeoHead({ title: 'Admin - whenly', noindex: true })
-import { getPollAsAdmin, finalizePoll, reopenPoll, deletePoll, deleteAdminOption } from '@/api/polls'
+import { getPollAsAdmin, finalizePoll, reopenPoll, deletePoll, deleteAdminOption, updateAdminOptionLabel } from '@/api/polls'
 import { formatOptionLabel } from '@/lib/format'
 import type { Poll } from '@/types'
 import { ApiError } from '@/api/client'
@@ -19,6 +19,8 @@ const poll = ref<Poll | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const acting = ref(false)
+const editingOptionId = ref<string | null>(null)
+const editLabel = ref('')
 
 const counts = computed(() => {
   if (!poll.value) return new Map<string, { yes: number; maybe: number; no: number }>()
@@ -80,6 +82,30 @@ async function removeOption(optionId: string) {
   } finally { acting.value = false }
 }
 
+function startEdit(optionId: string, currentLabel: string | null) {
+  editingOptionId.value = optionId
+  editLabel.value = currentLabel ?? ''
+}
+
+function cancelEdit() {
+  editingOptionId.value = null
+  editLabel.value = ''
+}
+
+async function saveEdit(optionId: string) {
+  if (!editLabel.value.trim()) return
+  acting.value = true
+  try {
+    const updated = await updateAdminOptionLabel(props.adminToken, optionId, editLabel.value)
+    if (poll.value) {
+      const idx = poll.value.options.findIndex(o => o.id === optionId)
+      if (idx !== -1) poll.value.options[idx] = { ...poll.value.options[idx], label: updated.label }
+    }
+    editingOptionId.value = null
+    editLabel.value = ''
+  } finally { acting.value = false }
+}
+
 onMounted(load)
 </script>
 
@@ -90,8 +116,8 @@ onMounted(load)
 
     <template v-else-if="poll">
       <p class="chip chip-accent">{{ t('admin.heading') }}</p>
-      <h1 class="font-serif text-3xl sm:text-5xl mt-3">{{ poll.title }}</h1>
-      <p class="mt-2 text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)]">{{ t('admin.sub') }}</p>
+      <h1 class="font-serif text-2xl sm:text-5xl mt-3">{{ poll.title }}</h1>
+      <p class="mt-1.5 text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)]">{{ t('admin.sub') }}</p>
 
       <div class="mt-6 flex flex-wrap gap-3">
         <RouterLink :to="{ name: 'poll', params: { publicId: poll.publicId } }" class="btn btn-outline">
@@ -102,19 +128,46 @@ onMounted(load)
         </button>
       </div>
 
-      <section class="mt-8">
-        <h2 class="font-serif text-2xl mb-3">{{ t('poll.results.heading') }}</h2>
-        <ul class="space-y-3">
+      <section class="mt-6 sm:mt-8">
+        <h2 class="font-serif text-xl sm:text-2xl mb-2 sm:mb-3">{{ t('poll.results.heading') }}</h2>
+        <ul class="space-y-2">
           <li v-for="opt in poll.options" :key="opt.id"
-              class="surface-soft p-4 grid gap-3 sm:grid-cols-[1fr_auto] items-center"
+              class="surface-soft p-3 sm:p-4 grid gap-2 sm:grid-cols-[1fr_auto] items-center"
               :class="{ 'ring-2 ring-[var(--color-clay-500)] border-[var(--color-clay-500)]': poll.finalizedOptionId === opt.id }">
             <div>
-              <p class="font-medium">{{ formatOptionLabel(opt, poll.type, poll.timezone, locale) }}</p>
-              <p class="text-xs text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)] mt-0.5">
-                {{ counts.get(opt.id)?.yes }} yes · {{ counts.get(opt.id)?.maybe }} maybe · {{ counts.get(opt.id)?.no }} no
-              </p>
+              <div v-if="editingOptionId === opt.id" class="flex items-center gap-2">
+                <input
+                  v-model="editLabel"
+                  class="input text-sm flex-1 min-w-0"
+                  maxlength="200"
+                  @keydown.enter="saveEdit(opt.id)"
+                  @keydown.escape="cancelEdit"
+                  autofocus
+                />
+                <button class="btn btn-accent btn-sm" :disabled="acting || !editLabel.trim()" @click="saveEdit(opt.id)">
+                  <CheckIcon class="w-4 h-4" />
+                </button>
+                <button class="btn btn-ghost btn-sm" :disabled="acting" @click="cancelEdit">
+                  <XMarkIcon class="w-4 h-4" />
+                </button>
+              </div>
+              <template v-else>
+                <p class="font-medium">{{ formatOptionLabel(opt, poll.type, poll.timezone, locale) }}</p>
+                <p class="text-xs text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)] mt-0.5">
+                  {{ counts.get(opt.id)?.yes }} yes · {{ counts.get(opt.id)?.maybe }} maybe · {{ counts.get(opt.id)?.no }} no
+                </p>
+              </template>
             </div>
-            <div class="justify-self-end flex gap-2">
+            <div v-if="editingOptionId !== opt.id" class="justify-self-end flex gap-1.5 sm:gap-2">
+              <button
+                v-if="opt.label !== null"
+                class="btn btn-ghost text-sm"
+                :disabled="acting"
+                :aria-label="t('admin.editOption')"
+                @click="startEdit(opt.id, opt.label)"
+              >
+                <PencilIcon class="w-4 h-4" />
+              </button>
               <button v-if="poll.type === 'OPEN'" class="btn btn-ghost text-sm" :disabled="acting" @click="removeOption(opt.id)">
                 <TrashIcon class="w-4 h-4" />
               </button>

@@ -179,6 +179,9 @@ export default {
     delete: 'Delete poll',
     confirmDelete: 'Delete the poll and all votes? This is immediate and cannot be undone.',
     confirmDeleteOption: 'Delete this option and all its votes?',
+    editOption: 'Edit option',
+    saveOption: 'Save',
+    cancelEdit: 'Cancel',
     ownerEmail: 'Owner email'
   },
   common: {

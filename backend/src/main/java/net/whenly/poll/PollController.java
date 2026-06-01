@@ -8,6 +8,7 @@ import net.whenly.poll.dto.AddParticipantOptionRequest;
 import net.whenly.poll.dto.CreatePollRequest;
 import net.whenly.poll.dto.CreatePollResponse;
 import net.whenly.poll.dto.FinalizeRequest;
+import net.whenly.poll.dto.UpdateOptionRequest;
 import net.whenly.poll.dto.PollResponse;
 import net.whenly.poll.dto.SuggestResponse;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -94,6 +96,16 @@ public class PollController {
     pollService.reopen(adminToken);
     Poll poll = pollService.getByAdminToken(adminToken);
     return mapper.toResponse(poll, true, null);
+  }
+
+  @Transactional
+  @PatchMapping("/admin/{adminToken}/options/{optionId}")
+  public PollResponse.Option updateOptionLabel(
+      @PathVariable String adminToken,
+      @PathVariable UUID optionId,
+      @Valid @RequestBody UpdateOptionRequest request) {
+    PollOption option = pollService.updateOptionLabelAsAdmin(adminToken, optionId, request.label());
+    return new PollResponse.Option(option.getId(), option.getPosition(), null, null, option.getLabel());
   }
 
   @DeleteMapping("/admin/{adminToken}/options/{optionId}")

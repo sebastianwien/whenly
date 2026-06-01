@@ -150,6 +150,19 @@ public class PollService {
   }
 
   @Transactional
+  public PollOption updateOptionLabelAsAdmin(String adminToken, java.util.UUID optionId, String label) {
+    Poll poll = getByAdminToken(adminToken);
+    PollOption option = pollOptionRepository.findById(optionId)
+        .orElseThrow(() -> ApiException.notFound("option_not_found"));
+    if (!option.getPoll().getId().equals(poll.getId())) {
+      throw ApiException.forbidden("option_poll_mismatch");
+    }
+    option.setLabel(label.trim());
+    poll.touch();
+    return option;
+  }
+
+  @Transactional
   public void deleteOptionAsAdmin(String adminToken, java.util.UUID optionId) {
     Poll poll = getByAdminToken(adminToken);
     PollOption option = pollOptionRepository.findById(optionId)

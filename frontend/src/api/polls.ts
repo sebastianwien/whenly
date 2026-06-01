@@ -85,3 +85,10 @@ export function deleteAdminOption(adminToken: string, optionId: string) {
     { method: 'DELETE' }
   )
 }
+
+export function updateAdminOptionLabel(adminToken: string, optionId: string, label: string) {
+  return api<PollOption>(
+    `${base}/admin/${encodeURIComponent(adminToken)}/options/${encodeURIComponent(optionId)}`,
+    { method: 'PATCH', body: { label } }
+  )
+}
