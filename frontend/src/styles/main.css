@@ -195,7 +195,7 @@ h1, h2, h3, h4, .font-serif {
 .vote-yes   { background-color: var(--color-sage-500);  color: var(--color-sand-50); box-shadow: var(--shadow-press); }
 .vote-maybe { background-color: var(--color-citrus-400); color: var(--color-ink-900); box-shadow: var(--shadow-press); }
 .vote-no    { background-color: var(--color-clay-300); color: var(--color-ink-900); box-shadow: var(--shadow-press); }
-.vote-empty { background-color: var(--color-sand-50);  color: var(--color-ink-50); border-color: var(--color-sand-300); }
+.vote-empty { background-color: var(--color-sand-100);  color: var(--color-ink-100); border-color: var(--color-sand-400); }
 
 /* ---- Tag + chips -------------------------------------------------------- */
 .chip {
@@ -256,5 +256,5 @@ h1, h2, h3, h4, .font-serif {
   .btn-ghost:hover { background-color: var(--color-ink-500); }
   .chip { background-color: var(--color-ink-500); color: var(--color-sand-100); }
   .field-label { color: var(--color-sand-300); }
-  .vote-empty { background-color: var(--color-ink-700); color: var(--color-sand-300); border-color: var(--color-ink-500); }
+  .vote-empty { background-color: var(--color-ink-500); color: var(--color-sand-400); border-color: var(--color-sand-400); }
 }

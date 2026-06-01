@@ -47,14 +47,21 @@ function labelFor(o: PollOption) {
 <template>
   <ul class="space-y-2">
     <li v-for="opt in poll.options" :key="opt.id"
-        class="surface-soft p-3 sm:p-4 grid gap-2 sm:grid-cols-[1fr_auto] items-center"
+        class="surface-soft px-3 py-2.5 sm:px-4 sm:py-3 grid gap-2 sm:grid-cols-[1fr_auto] items-center"
         :class="{ 'ring-2 ring-[var(--color-clay-500)] border-[var(--color-clay-500)]': poll.finalizedOptionId === opt.id }">
       <div>
         <p class="font-medium text-base leading-tight">{{ labelFor(opt) }}</p>
-        <div class="flex gap-2 mt-0.5 text-xs text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)]">
-          <span>{{ t('poll.votes.yes') }}: <strong>{{ counts.get(opt.id)?.yes ?? 0 }}</strong></span>
-          <span v-if="poll.settings.allowMaybe">{{ t('poll.votes.maybe') }}: <strong>{{ counts.get(opt.id)?.maybe ?? 0 }}</strong></span>
-          <span>{{ t('poll.votes.no') }}: <strong>{{ counts.get(opt.id)?.no ?? 0 }}</strong></span>
+        <div class="flex gap-1.5 mt-1 flex-wrap">
+          <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-[var(--color-sage-400)]/20 text-[var(--color-sage-600)] dark:bg-[var(--color-sage-600)]/30 dark:text-[var(--color-sage-400)] font-medium">
+            ✓ {{ counts.get(opt.id)?.yes ?? 0 }}
+          </span>
+          <span v-if="poll.settings.allowMaybe"
+                class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-[var(--color-citrus-400)]/20 text-[var(--color-citrus-500)] dark:bg-[var(--color-citrus-400)]/20 dark:text-[var(--color-citrus-400)] font-medium">
+            ~ {{ counts.get(opt.id)?.maybe ?? 0 }}
+          </span>
+          <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-[var(--color-clay-300)]/20 text-[var(--color-clay-700)] dark:bg-[var(--color-clay-300)]/20 dark:text-[var(--color-clay-300)] font-medium">
+            ✗ {{ counts.get(opt.id)?.no ?? 0 }}
+          </span>
         </div>
       </div>
       <div class="flex gap-1.5 shrink-0 justify-end sm:gap-2">

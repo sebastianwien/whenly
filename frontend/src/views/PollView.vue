@@ -289,7 +289,12 @@ watchEffect(() => {
 
       <!-- Results -->
       <section v-if="!poll.resultsHidden" class="mb-6">
-        <h2 class="font-serif text-xl sm:text-2xl mb-2 sm:mb-3">{{ t('poll.results.heading') }}</h2>
+        <div class="flex items-baseline gap-3 mb-2 sm:mb-3">
+          <h2 class="font-serif text-xl sm:text-2xl">{{ t('poll.results.heading') }}</h2>
+          <span v-if="poll.participants.length > 0" class="text-sm text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)]">
+            {{ poll.participantCount }} {{ t('poll.results.participants') }}
+          </span>
+        </div>
         <div v-if="poll.participants.length === 0" class="text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)]">
           {{ t('poll.results.noVotesYet') }}
         </div>
