@@ -203,13 +203,13 @@ watchEffect(() => {
 
     <template v-else-if="poll">
       <!-- Title -->
-      <header class="mb-6">
-        <div class="flex flex-wrap items-center gap-2 mb-2">
+      <header class="mb-4 sm:mb-6">
+        <div class="flex flex-wrap items-center gap-2 mb-1.5">
           <span v-if="poll.closedAt" class="chip chip-accent">{{ t('poll.closed') }}</span>
           <span v-if="poll.location" class="chip">{{ poll.location }}</span>
           <span class="chip">{{ poll.participantCount }} {{ t('poll.results.participants') }}</span>
         </div>
-        <h1 class="font-serif text-3xl sm:text-5xl leading-tight">{{ poll.title }}</h1>
+        <h1 class="font-serif text-2xl sm:text-5xl leading-tight">{{ poll.title }}</h1>
         <p v-if="poll.description" class="mt-2 text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)] whitespace-pre-line">
           {{ poll.description }}
         </p>
@@ -264,8 +264,8 @@ watchEffect(() => {
       </section>
 
       <!-- Vote section -->
-      <section v-if="!poll.closedAt" class="mb-8">
-        <h2 class="font-serif text-2xl mb-3">{{ t('poll.voteHeading') }}</h2>
+      <section v-if="!poll.closedAt" class="mb-6">
+        <h2 class="font-serif text-xl sm:text-2xl mb-2 sm:mb-3">{{ t('poll.voteHeading') }}</h2>
         <div v-if="poll.settings.requireParticipantName || editing || !myToken" class="mb-3">
           <label class="field-label" for="my-name">{{ t('poll.yourName') }}</label>
           <input id="my-name" v-model="myName" class="input max-w-md" :placeholder="t('poll.namePlaceholder')"
@@ -273,7 +273,7 @@ watchEffect(() => {
         </div>
         <VoteGrid :poll="poll" :my-votes="myVotes" :editable="!poll.closedAt"
                   @change="onVoteChange" />
-        <div class="mt-4 flex flex-wrap gap-3 items-center">
+        <div class="mt-3 flex flex-wrap gap-2 items-center">
           <button class="btn btn-accent" :disabled="saving || myVotes.size === 0" @click="save">
             {{ saving ? t('common.loading') : myToken ? t('poll.updateVote') : t('poll.saveVote') }}
           </button>
@@ -288,8 +288,8 @@ watchEffect(() => {
       <AdSenseAd v-if="myToken && !editing && !poll.closedAt && poll.participantCount >= 2" />
 
       <!-- Results -->
-      <section v-if="!poll.resultsHidden" class="mb-8">
-        <h2 class="font-serif text-2xl mb-3">{{ t('poll.results.heading') }}</h2>
+      <section v-if="!poll.resultsHidden" class="mb-6">
+        <h2 class="font-serif text-xl sm:text-2xl mb-2 sm:mb-3">{{ t('poll.results.heading') }}</h2>
         <div v-if="poll.participants.length === 0" class="text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)]">
           {{ t('poll.results.noVotesYet') }}
         </div>
@@ -327,8 +327,8 @@ watchEffect(() => {
       <div v-else class="surface-soft p-4 mb-8 text-center">{{ t('poll.results.hidden') }}</div>
 
       <!-- Share -->
-      <section class="mb-8">
-        <h2 class="font-serif text-2xl mb-3">{{ t('poll.share.heading') }}</h2>
+      <section class="mb-6">
+        <h2 class="font-serif text-xl sm:text-2xl mb-2 sm:mb-3">{{ t('poll.share.heading') }}</h2>
         <div class="flex flex-col sm:flex-row gap-3 items-start">
           <button class="btn btn-outline" @click="copyShare">
             <CheckIcon v-if="copied" class="w-5 h-5" />

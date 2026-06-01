@@ -45,22 +45,22 @@ function labelFor(o: PollOption) {
 </script>
 
 <template>
-  <ul class="space-y-3">
+  <ul class="space-y-2">
     <li v-for="opt in poll.options" :key="opt.id"
-        class="surface-soft p-4 grid gap-3 sm:grid-cols-[1fr_auto] items-center"
+        class="surface-soft p-3 sm:p-4 grid gap-2 sm:grid-cols-[1fr_auto] items-center"
         :class="{ 'ring-2 ring-[var(--color-clay-500)] border-[var(--color-clay-500)]': poll.finalizedOptionId === opt.id }">
       <div>
-        <p class="font-medium text-lg leading-tight">{{ labelFor(opt) }}</p>
-        <div class="flex gap-3 mt-1 text-xs text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)]">
+        <p class="font-medium text-base leading-tight">{{ labelFor(opt) }}</p>
+        <div class="flex gap-2 mt-0.5 text-xs text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)]">
           <span>{{ t('poll.votes.yes') }}: <strong>{{ counts.get(opt.id)?.yes ?? 0 }}</strong></span>
           <span v-if="poll.settings.allowMaybe">{{ t('poll.votes.maybe') }}: <strong>{{ counts.get(opt.id)?.maybe ?? 0 }}</strong></span>
           <span>{{ t('poll.votes.no') }}: <strong>{{ counts.get(opt.id)?.no ?? 0 }}</strong></span>
         </div>
       </div>
-      <div class="flex gap-2 shrink-0 justify-end">
+      <div class="flex gap-1.5 shrink-0 justify-end sm:gap-2">
         <!-- Mobile-friendly cycle button + 3 explicit pills -->
         <button type="button"
-                class="vote-pill"
+                class="vote-pill !h-9 !min-w-[2.75rem] sm:!h-10 sm:!min-w-[3.25rem]"
                 :class="valueFor(opt.id) === 'YES' ? 'vote-yes' : 'vote-empty'"
                 :disabled="!editable"
                 :aria-label="t('poll.votes.yes')"
@@ -69,7 +69,7 @@ function labelFor(o: PollOption) {
         </button>
         <button v-if="poll.settings.allowMaybe"
                 type="button"
-                class="vote-pill"
+                class="vote-pill !h-9 !min-w-[2.75rem] sm:!h-10 sm:!min-w-[3.25rem]"
                 :class="valueFor(opt.id) === 'MAYBE' ? 'vote-maybe' : 'vote-empty'"
                 :disabled="!editable"
                 :aria-label="t('poll.votes.maybe')"
@@ -77,7 +77,7 @@ function labelFor(o: PollOption) {
           ~
         </button>
         <button type="button"
-                class="vote-pill"
+                class="vote-pill !h-9 !min-w-[2.75rem] sm:!h-10 sm:!min-w-[3.25rem]"
                 :class="valueFor(opt.id) === 'NO' ? 'vote-no' : 'vote-empty'"
                 :disabled="!editable"
                 :aria-label="t('poll.votes.no')"
