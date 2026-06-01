@@ -8,6 +8,7 @@ interface Props {
   poll: Poll
   myVotes: Map<string, VoteValue>
   editable: boolean
+  showCounts?: boolean
 }
 
 const props = defineProps<Props>()
@@ -51,7 +52,7 @@ function labelFor(o: PollOption) {
         :class="{ 'ring-2 ring-[var(--color-clay-500)] border-[var(--color-clay-500)]': poll.finalizedOptionId === opt.id }">
       <div>
         <p class="font-medium text-base leading-tight">{{ labelFor(opt) }}</p>
-        <div class="flex gap-1.5 mt-1 flex-wrap">
+        <div v-if="showCounts" class="flex gap-1.5 mt-1 flex-wrap">
           <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-[var(--color-sage-400)]/20 text-[var(--color-sage-600)] dark:bg-[var(--color-sage-600)]/30 dark:text-[var(--color-sage-400)] font-medium">
             ✓ {{ counts.get(opt.id)?.yes ?? 0 }}
           </span>

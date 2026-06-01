@@ -272,6 +272,7 @@ watchEffect(() => {
                  :required="poll.settings.requireParticipantName" maxlength="120" />
         </div>
         <VoteGrid :poll="poll" :my-votes="myVotes" :editable="!poll.closedAt"
+                  :show-counts="!!myToken && !editing"
                   @change="onVoteChange" />
         <div class="mt-3 flex flex-wrap gap-2 items-center">
           <button class="btn btn-accent" :disabled="saving || myVotes.size === 0" @click="save">
@@ -288,7 +289,7 @@ watchEffect(() => {
       <AdSenseAd v-if="myToken && !editing && !poll.closedAt && poll.participantCount >= 2" />
 
       <!-- Results -->
-      <section v-if="!poll.resultsHidden" class="mb-6">
+      <section v-if="!poll.resultsHidden && (!!myToken && !editing || poll.closedAt)" class="mb-6">
         <div class="flex items-baseline gap-3 mb-2 sm:mb-3">
           <h2 class="font-serif text-xl sm:text-2xl">{{ t('poll.results.heading') }}</h2>
           <span v-if="poll.participants.length > 0" class="text-sm text-[var(--color-ink-100)] dark:text-[var(--color-sand-300)]">
