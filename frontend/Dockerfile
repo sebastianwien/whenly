@@ -8,7 +8,7 @@ COPY src src
 COPY public public
 RUN npm run build
 
-FROM nginx:1.27-alpine
+FROM nginx:1.30.6-alpine
 COPY --from=build /workspace/dist /usr/share/nginx/html
 COPY nginx-frontend.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
